@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Melo Reparos — Produção</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+
+:root{--bg:#f0f4f8;--surface:#fff;--surface2:#f7f9fc;--border:#dde3ec;--blue:#1a56db;--blue-light:#e8f0fd;--blue-mid:#3b6fd4;--yellow:#f5a800;--yellow-lt:#fff8e6;--green:#16a34a;--green-lt:#dcfce7;--red:#dc2626;--red-lt:#fee2e2;--orange:#ea580c;--orange-lt:#ffedd5;--purple:#7c3aed;--purple-lt:#ede9fe;--teal:#0d9488;--teal-lt:#ccfbf1;--pink:#db2777;--pink-lt:#fce7f3;--text:#0f1b2d;--text-muted:#5a6a7e;--text-dim:#94a3b8;}
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}header{background:var(--blue);padding:0 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:62px;position:sticky;top:0;z-index:200;box-shadow:0 2px 12px rgba(26,86,219,.25)}.logo{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:22px;letter-spacing:3px;text-transform:uppercase;color:#fff;display:flex;align-items:center;gap:10px;white-space:nowrap}.logo-accent{color:var(--yellow)}.logo-bar{width:3px;height:22px;background:var(--yellow);border-radius:2px}.page-tag{font-size:13px;font-weight:500;letter-spacing:1px;opacity:.65;margin-left:6px}.hdr-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}.hbtn{border:none;padding:8px 15px;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px;letter-spacing:1.2px;text-transform:uppercase;cursor:pointer;border-radius:5px;display:flex;align-items:center;gap:6px;transition:background .15s,transform .1s;box-shadow:0 2px 6px rgba(0,0,0,.15);white-space:nowrap;text-decoration:none}.hbtn:hover{transform:translateY(-1px)}.hbtn-yellow{background:var(--yellow);color:#000}.hbtn-outline{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.3)}.hbtn-outline:hover{background:rgba(255,255,255,.22)}main{padding:24px 28px;display:flex;flex-direction:column;gap:22px;max-width:1600px;margin:0 auto}.hero{background:linear-gradient(135deg,#fff,#f7f9fc);border:1px solid var(--border);border-radius:14px;padding:20px 22px;box-shadow:0 1px 4px rgba(0,0,0,.05);display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}.hero-kicker{font-size:11px;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:var(--text-muted)}.hero-title{font-family:'Barlow Condensed';font-weight:900;font-size:34px;letter-spacing:2px;text-transform:uppercase;color:var(--blue);line-height:1;margin-top:3px}.hero-sub{font-size:14px;color:var(--text-muted);margin-top:6px;max-width:720px}.hero-status{background:var(--blue-light);border:1px solid #c7d8f8;color:var(--blue);border-radius:999px;padding:8px 14px;font-weight:800;font-size:12px;text-transform:uppercase;letter-spacing:1px}.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px}.sum-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 18px;box-shadow:0 1px 4px rgba(0,0,0,.05);position:relative;overflow:hidden}.sum-card::before{content:'';position:absolute;left:0;right:0;top:0;height:3px;background:var(--sc,var(--blue))}.sum-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted)}.sum-value{font-family:'Barlow Condensed';font-weight:900;font-size:31px;line-height:1;margin-top:6px}.sum-sub{font-size:11px;color:var(--text-muted);margin-top:4px}.sec-hdr{display:flex;align-items:center;gap:12px;margin-bottom:14px}.sec-title{font-family:'Barlow Condensed';font-weight:800;font-size:18px;letter-spacing:2.5px;text-transform:uppercase;color:var(--blue)}.sec-badge{background:var(--blue-light);border:1px solid #c7d8f8;color:var(--blue-mid);font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;letter-spacing:.5px;text-transform:uppercase}.sec-line{flex:1;height:1px;background:var(--border)}.panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.05);overflow:hidden}.toolbar{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}.tt-label{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted)}.tt-input,.tt-select{background:#fff;border:1.5px solid var(--border);border-radius:6px;padding:8px 11px;font-family:'Barlow';font-size:13px;color:var(--text);outline:none}.tt-input:focus,.tt-select:focus{border-color:var(--blue)}.empty{padding:34px 12px;text-align:center;color:var(--text-muted);font-size:13px;background:#fafbfc;border:1px dashed var(--border);border-radius:10px}.empty strong{font-family:'Barlow Condensed';display:block;font-size:15px;letter-spacing:1px;text-transform:uppercase;color:var(--text-dim);margin-bottom:3px}.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.05);overflow:auto}table{width:100%;border-collapse:collapse;font-size:13px}thead tr{background:var(--blue)}thead th{padding:11px 14px;text-align:left;font-family:'Barlow Condensed';font-weight:800;font-size:11px;letter-spacing:1.7px;text-transform:uppercase;color:rgba(255,255,255,.9);white-space:nowrap;cursor:pointer}tbody tr{border-bottom:1px solid var(--border)}tbody tr:hover{background:var(--surface2)}tbody td{padding:11px 14px;vertical-align:middle}.td-plate{font-family:'Barlow Condensed';font-weight:900;font-size:17px;letter-spacing:2px;color:var(--blue);white-space:nowrap}.td-valor{font-family:'Barlow Condensed';font-weight:900;font-size:17px}.tag{font-size:10px;font-weight:800;padding:2px 7px;border-radius:5px;text-transform:uppercase;letter-spacing:.5px;display:inline-flex;align-items:center;width:fit-content}.tag-ok{background:var(--green-lt);color:var(--green)}.tag-warn{background:var(--yellow-lt);color:#a16207}.tag-err{background:var(--red-lt);color:var(--red)}.tag-info{background:var(--blue-light);color:var(--blue)}.tag-purple{background:var(--purple-lt);color:var(--purple)}#noData{display:none}.no-data-box{margin:40px auto;max-width:720px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:34px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.05)}.no-data-box h1{font-family:'Barlow Condensed';font-size:28px;color:var(--blue);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}.no-data-box p{color:var(--text-muted);line-height:1.6}.back-actions{display:flex;justify-content:center;gap:10px;margin-top:18px;flex-wrap:wrap}.back-actions .hbtn{box-shadow:none}.alert-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.alert-card{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--ac,var(--blue));border-radius:10px;padding:13px 14px;box-shadow:0 1px 4px rgba(0,0,0,.04)}.alert-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted)}.alert-value{font-family:'Barlow Condensed';font-size:24px;font-weight:900;color:var(--text);margin-top:3px}.alert-desc{font-size:12px;color:var(--text-muted);margin-top:3px;line-height:1.35}.alert-card.critical{background:linear-gradient(135deg,var(--red-lt),#fff)}.alert-card.warn{background:linear-gradient(135deg,var(--yellow-lt),#fff)}@media(max-width:1100px){.summary-grid{grid-template-columns:repeat(2,1fr)}.alert-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:760px){header{align-items:flex-start;flex-direction:column;padding:12px 16px}.hdr-right{justify-content:flex-start}.summary-grid,.alert-grid{grid-template-columns:1fr}main{padding:16px}.hero-title{font-size:28px}.table-wrap{border-radius:8px}table{font-size:12px}}::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+
+.stage-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}.stage-col{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.04)}.stage-hdr{padding:10px 12px;text-align:center;border-bottom:1px solid var(--border);border-top:3px solid var(--sc,var(--blue))}.stage-title{font-family:'Barlow Condensed';font-weight:900;font-size:12px;letter-spacing:1.6px;text-transform:uppercase;color:var(--blue)}.stage-cards{padding:10px;display:flex;flex-direction:column;gap:8px;max-height:520px;overflow:auto}.car-card{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px}.car-card.overdue{border-color:#fecaca;background:linear-gradient(135deg,var(--red-lt),#fff)}.car-card.today{border-color:#fde68a;background:linear-gradient(135deg,var(--yellow-lt),#fff)}.plate{font-family:'Barlow Condensed';font-weight:900;font-size:16px;letter-spacing:2px;color:var(--blue)}.car-model{font-size:12px;color:var(--text);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.car-owner{font-size:11px;color:var(--text-muted);margin-top:2px}.car-meta{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:8px}.queue-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}@media(max-width:1200px){.stage-grid{grid-template-columns:repeat(3,1fr)}}@media(max-width:760px){.stage-grid,.queue-grid{grid-template-columns:1fr}}
+
+
+
+/* ── NAVEGAÇÃO PRINCIPAL (PR11) ── */
+.app-tabs{position:sticky;top:62px;z-index:170;background:rgba(255,255,255,.96);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.04);padding:8px 24px;display:flex;align-items:center;gap:8px;overflow-x:auto;scrollbar-width:thin;}
+.app-tab{border:1px solid var(--border);background:var(--surface2);color:var(--text-muted);font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:12px;letter-spacing:1.2px;text-transform:uppercase;text-decoration:none;border-radius:999px;padding:8px 13px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;cursor:pointer;transition:background .15s,border-color .15s,color .15s,transform .1s;}
+.app-tab:hover{background:var(--blue-light);border-color:#c7d8f8;color:var(--blue);transform:translateY(-1px);}
+.app-tab.active{background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:0 2px 8px rgba(26,86,219,.18);}
+.app-tab.danger{border-color:#fecaca;background:var(--red-lt);color:var(--red);}
+.app-tab.danger:hover{background:#fecaca;color:#991b1b;}
+@media(max-width:760px){.app-tabs{top:auto;position:relative;padding:8px 12px;}.app-tab{font-size:11px;padding:7px 11px;}}
+
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"><div class="logo-bar"></div>Melo<span class="logo-accent">&nbsp;Reparos</span><span class="page-tag">/ Produção</span></div>
+  <div class="hdr-right">
+    <span class="last-update" id="topStatus">Área detalhada</span>
+  </div>
+</header>
+<nav class="app-tabs" aria-label="Navegação principal">
+  <a class="app-tab" href="oficina_dashboard.html" onclick="if(window.preserveMeloData)window.preserveMeloData()">🏠 Visão Geral</a>
+  <a class="app-tab" href="hoje.html">📅 Hoje</a>
+  <a class="app-tab active" href="producao.html">🛠️ Produção</a>
+  <a class="app-tab" href="compras.html">🧾 Compras</a>
+  <a class="app-tab" href="fluxo_caixa.html">💸 Financeiro</a>
+  <a class="app-tab" href="relatorio.html">📊 Relatórios</a>
+</nav>
+<div id="noData"><div class="no-data-box"><h1>Dados não encontrados</h1><p>Abra esta página pela Visão Geral depois de carregar a planilha. Assim os dados operacionais são transferidos com segurança para esta área.</p><div class="back-actions"><a class="hbtn hbtn-yellow" href="oficina_dashboard.html" onclick="if(window.preserveMeloData)window.preserveMeloData()">Voltar para Visão Geral</a></div></div></div>
+<div id="content" style="display:none">
+<main>
+  <section class="hero"><div><div class="hero-kicker">Área dedicada</div><div class="hero-title">Produção</div><div class="hero-sub">Acompanhe os carros por etapa, atrasos, entregas de hoje e gargalos da oficina sem carregar o dashboard com listas longas.</div></div><div class="hero-status" id="fileStatus">Dados carregados</div></section>
+  <section id="summary" class="summary-grid"></section>
+  <section><div class="sec-hdr"><span class="sec-title">🚨 Alertas operacionais</span><span class="sec-badge">Prioridades</span><div class="sec-line"></div></div><div id="alerts"></div></section>
+  <section class="toolbar"><span class="tt-label">Busca</span><input id="searchInput" class="tt-input" placeholder="Placa, cliente ou veículo" oninput="applyFilters()"><span class="tt-label">Etapa</span><select id="etapaFilter" class="tt-select" onchange="applyFilters()"><option value="">Todas</option></select><span class="tt-label">Status</span><select id="statusFilter" class="tt-select" onchange="applyFilters()"><option value="">Todos</option><option value="atrasado">Atrasado</option><option value="entrega hoje">Entrega hoje</option><option value="aguardando peca">Aguardando peça</option><option value="sem previsao">Sem previsão</option><option value="no prazo">No prazo</option></select><span id="tableCount" style="margin-left:auto;font-size:12px;color:var(--text-muted);font-weight:700"></span></section>
+  <section><div class="sec-hdr"><span class="sec-title">🏭 Produção por etapa</span><span class="sec-badge">Oficina</span><div class="sec-line"></div></div><div id="stages"></div></section>
+  <section><div class="sec-hdr"><span class="sec-title">📋 Filas operacionais</span><span class="sec-badge">Antes / fora da produção</span><div class="sec-line"></div></div><div id="queues"></div></section>
+  <section><div class="sec-hdr"><span class="sec-title">🚗 Lista detalhada</span><span class="sec-badge" id="listBadge">Operação</span><div class="sec-line"></div></div><div class="table-wrap"><table><thead><tr><th onclick="sortTable('placa')">Placa</th><th onclick="sortTable('veiculo')">Veículo</th><th onclick="sortTable('cliente')">Cliente</th><th onclick="sortTable('etapa')">Etapa</th><th>Entrada</th><th onclick="sortTable('entrega')">Previsão</th><th>Na etapa</th><th>Dias</th><th>Status</th></tr></thead><tbody id="tbody"></tbody></table></div></section>
+</main>
+</div>
+<script>
+
+const ETAPAS_OFICINA=['Desmontagem','Funilaria','Preparação','Pintura','Montagem','Polimento'];
+const ETAPA_ICONS={Desmontagem:'🔩',Funilaria:'🔨','Preparação':'🧪',Pintura:'🎨',Montagem:'⚙️',Polimento:'✨'};
+const ETAPA_COLORS={Desmontagem:'var(--pink)',Funilaria:'var(--orange)','Preparação':'var(--yellow)',Pintura:'var(--blue)',Montagem:'var(--purple)',Polimento:'var(--teal)'};
+let G={active:{},entregues:[],compras:{},mesNome:'',filename:''};
+function escapeHtml(v){return String(v??'').replace(/[&<>'"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]));}
+function escapeAttr(v){return escapeHtml(v).replace(/`/g,'&#96;');}
+function readStoredJSON(key){
+  const sources=[sessionStorage,localStorage];
+  for(const source of sources){
+    try{
+      const raw=source.getItem(key);
+      if(raw)return JSON.parse(raw);
+    }catch(e){console.warn('Falha ao ler dados salvos:',key,e);}
+  }
+  return null;
+}
+function hasStoredKey(key){
+  try{if(sessionStorage.getItem(key))return true;}catch(e){}
+  try{if(localStorage.getItem(key))return true;}catch(e){}
+  return false;
+}
+function parseBRDate(v){if(!v||v==='—')return null;if(v instanceof Date&&!isNaN(v))return v;const s=String(v);let m=s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);if(m)return new Date(+m[3],+m[2]-1,+m[1]);m=s.match(/^(\d{4})-(\d{2})-(\d{2})/);if(m)return new Date(+m[1],+m[2]-1,+m[3]);const d=new Date(s);return isNaN(d)?null:d;}
+function todayStart(){const d=new Date();return new Date(d.getFullYear(),d.getMonth(),d.getDate());}
+function sameDay(a,b){return a&&b&&a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate();}
+function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x;}
+function moneyNumber(v){if(typeof v==='number')return v||0;const s=String(v||'').replace(/R\$|\s/g,'').replace(/\./g,'').replace(',', '.');return parseFloat(s)||0;}
+function fmtMoney(n){return (Number(n)||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});}
+function norm(s){return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();}
+function loadOperationalData(){try{const raw=readStoredJSON('melooperacional');if(!raw)return false;G=raw||G;Object.values(G.active||{}).forEach(o=>{o.entregaDate=parseBRDate(o.entregaDate||o.entrega);o.entradaDate=parseBRDate(o.entradaDate||o.entrada);hydrateStageDate(o);});return !!Object.keys(G.active||{}).length;}catch(e){console.warn('Erro ao carregar dados operacionais:',e);return false;}}
+function showNoData(){document.getElementById('content').style.display='none';document.getElementById('noData').style.display='block';}
+function startPage(){if(!loadOperationalData()){showNoData();return;}document.getElementById('noData').style.display='none';document.getElementById('content').style.display='block';document.getElementById('fileStatus').textContent=G.filename?`📄 ${G.filename}`:'Dados carregados do dashboard';renderPage();}
+function carStatus(o){const t=todayStart();if(o.etapa==='Aguardando peça')return ['Aguardando peça','tag-purple'];if(!o.entregaDate)return ['Sem previsão','tag-warn'];if(o.entregaDate<t)return ['Atrasado','tag-err'];if(sameDay(o.entregaDate,t))return ['Entrega hoje','tag-warn'];return ['No prazo','tag-ok'];}
+function shortVehicle(o){return `${o.placa||'—'} · ${o.veiculo||'—'}`;}
+function etapaKey(v){return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();}
+function getEtapaPrazoDias(etapa){const e=etapaKey(etapa);if(e==='pintura'||e==='polimento')return 2;if(e==='desmontagem'||e==='preparacao'||e==='montagem')return 2;if(e==='funilaria')return 5;if(e==='aguardando peca')return 7;if(e==='agendar')return 4;return 7;}
+function hydrateStageDate(o){o.etapaDesdeDate=parseBRDate(o.etapaDesdeDate||o.etapaDesdeISO||o.etapaDesde);o.diasNaEtapa=o.etapaDesdeDate?Math.max(0,Math.round((todayStart()-o.etapaDesdeDate)/86400000)):null;return o;}
+function longStageList(list){return (list||[]).filter(o=>{hydrateStageDate(o);if(!o.etapaDesdeDate||etapaKey(o.etapa)==='agendado')return false;return (o.diasNaEtapa||0)>=getEtapaPrazoDias(o.etapa);}).sort((a,b)=>(b.diasNaEtapa||0)-(a.diasNaEtapa||0));}
+function longStageLabel(o){return `${o.placa||'—'} · ${o.etapa||'—'} · ${typeof o.diasNaEtapa==='number'?o.diasNaEtapa:'—'}d`;}
+
+
+
+let prodSort='entrega',prodDir=1;
+function filteredList(){let list=Object.values(G.active||{});const q=norm(document.getElementById('searchInput')?.value||'');const etapa=document.getElementById('etapaFilter')?.value||'';const status=document.getElementById('statusFilter')?.value||'';if(q)list=list.filter(o=>norm(o.placa).includes(q)||norm(o.cliente).includes(q)||norm(o.veiculo).includes(q));if(etapa)list=list.filter(o=>o.etapa===etapa);if(status)list=list.filter(o=>norm(carStatus(o)[0])===status);return list;}
+function renderPage(){const all=Object.values(G.active||{});fillFilters(all);renderAllProduction(all);}
+function fillFilters(list){const sel=document.getElementById('etapaFilter');if(!sel.dataset.ready){[...new Set(list.map(o=>o.etapa).filter(Boolean))].sort().forEach(e=>sel.innerHTML+=`<option value="${escapeAttr(e)}">${escapeHtml(e)}</option>`);sel.dataset.ready='1';}}
+function applyFilters(){renderAllProduction(filteredList());}
+function renderAllProduction(list){const today=todayStart();const oficina={};ETAPAS_OFICINA.forEach(e=>oficina[e]=list.filter(o=>o.etapa===e));const filas=['Aguardando peça','Agendar','Agendado'].reduce((a,e)=>(a[e]=list.filter(o=>o.etapa===e),a),{});const atrasados=list.filter(o=>o.entregaDate&&o.entregaDate<today);const entregaHoje=list.filter(o=>sameDay(o.entregaDate,today));const semPrev=list.filter(o=>!o.entregaDate);const top=ETAPAS_OFICINA.map(e=>({e,q:oficina[e].length})).sort((a,b)=>b.q-a.q)[0]||{e:'—',q:0};const dias=list.map(o=>o.entradaDate?Math.max(0,Math.round((today-o.entradaDate)/86400000)):0).filter(Boolean);const media=dias.length?Math.round(dias.reduce((a,b)=>a+b,0)/dias.length):0;const muitoTempo=longStageList(list);document.getElementById('summary').innerHTML=`<div class="sum-card" style="--sc:var(--blue)"><div class="sum-label">Em produção</div><div class="sum-value">${ETAPAS_OFICINA.reduce((s,e)=>s+oficina[e].length,0)}</div><div class="sum-sub">Nas etapas da oficina</div></div><div class="sum-card" style="--sc:var(--red)"><div class="sum-label">Atrasados</div><div class="sum-value">${atrasados.length}</div><div class="sum-sub">Previsão vencida</div></div><div class="sum-card" style="--sc:var(--yellow)"><div class="sum-label">Entrega hoje</div><div class="sum-value">${entregaHoje.length}</div><div class="sum-sub">Prioridade do dia</div></div><div class="sum-card" style="--sc:var(--purple)"><div class="sum-label">Aguardando peça</div><div class="sum-value">${filas['Aguardando peça'].length}</div><div class="sum-sub">Pode travar produção</div></div><div class="sum-card" style="--sc:var(--red)"><div class="sum-label">Muito tempo na etapa</div><div class="sum-value">${muitoTempo.length}</div><div class="sum-sub">Acima do limite da etapa atual</div></div><div class="sum-card" style="--sc:var(--orange)"><div class="sum-label">Gargalo</div><div class="sum-value" style="font-size:24px">${escapeHtml(top.e)}</div><div class="sum-sub">${top.q} veículo(s) · média ${media} dia(s)</div></div>`;renderAlerts(atrasados,entregaHoje,semPrev,filas['Aguardando peça'],muitoTempo);renderStages(oficina);renderQueues(filas);renderTable(list);}
+function renderAlerts(atrasados,hoje,semPrev,aguardando,muitoTempo){document.getElementById('alerts').innerHTML=`<div class="alert-grid"><div class="alert-card ${atrasados.length?'critical':''}" style="--ac:var(--red)"><div class="alert-label">Regularizar atrasos</div><div class="alert-value">${atrasados.length}</div><div class="alert-desc">${atrasados.slice(0,3).map(shortVehicle).map(escapeHtml).join('<br>')||'Nenhum carro atrasado.'}</div></div><div class="alert-card ${hoje.length?'warn':''}" style="--ac:var(--yellow)"><div class="alert-label">Confirmar entregas</div><div class="alert-value">${hoje.length}</div><div class="alert-desc">${hoje.slice(0,3).map(shortVehicle).map(escapeHtml).join('<br>')||'Nenhuma entrega prevista para hoje.'}</div></div><div class="alert-card ${aguardando.length?'warn':''}" style="--ac:var(--purple)"><div class="alert-label">Peça travando produção</div><div class="alert-value">${aguardando.length}</div><div class="alert-desc">${aguardando.slice(0,3).map(shortVehicle).map(escapeHtml).join('<br>')||'Nenhum carro aguardando peça.'}</div></div><div class="alert-card ${muitoTempo.length?'critical':''}" style="--ac:var(--red)"><div class="alert-label">Muito tempo na etapa</div><div class="alert-value">${muitoTempo.length}</div><div class="alert-desc">${muitoTempo.slice(0,4).map(longStageLabel).map(escapeHtml).join('<br>')||'Nenhum veículo acima do limite da etapa.'}</div></div><div class="alert-card ${semPrev.length?'warn':''}" style="--ac:var(--orange)"><div class="alert-label">Sem previsão</div><div class="alert-value">${semPrev.length}</div><div class="alert-desc">Defina data de entrega para evitar perda de controle.</div></div></div>`;}
+function carCard(o){const [st,cls]=carStatus(o);hydrateStageDate(o);const stageTag=typeof o.diasNaEtapa==='number'?`<span class="tag ${o.diasNaEtapa>=getEtapaPrazoDias(o.etapa)?'tag-err':'tag-info'}">Etapa ${o.diasNaEtapa}d</span>`:'';return `<div class="car-card ${cls==='tag-err'?'overdue':cls==='tag-warn'?'today':''}"><div class="plate">${escapeHtml(o.placa)}</div><div class="car-model">${escapeHtml(o.veiculo)}${o.cor?' · '+escapeHtml(o.cor):''}</div><div class="car-owner">${escapeHtml(o.cliente)}</div><div class="car-meta"><span class="tag ${cls}">${escapeHtml(st)}</span><span class="tag tag-info">📅 ${escapeHtml(o.entrega||'—')}</span>${stageTag}</div></div>`;}
+function renderStages(oficina){document.getElementById('stages').innerHTML=`<div class="stage-grid">${ETAPAS_OFICINA.map(e=>`<div class="stage-col"><div class="stage-hdr" style="--sc:${ETAPA_COLORS[e]}"><div class="stage-title">${ETAPA_ICONS[e]} ${escapeHtml(e)} · ${oficina[e].length}</div></div><div class="stage-cards">${oficina[e].length?oficina[e].map(carCard).join(''):'<div class="empty">Nenhum veículo nesta etapa.</div>'}</div></div>`).join('')}</div>`;}
+function renderQueues(filas){document.getElementById('queues').innerHTML=`<div class="queue-grid">${Object.keys(filas).map(e=>`<div class="stage-col"><div class="stage-hdr" style="--sc:${e==='Aguardando peça'?'var(--red)':e==='Agendar'?'var(--orange)':'var(--blue)'}"><div class="stage-title">${escapeHtml(e)} · ${filas[e].length}</div></div><div class="stage-cards">${filas[e].length?filas[e].map(carCard).join(''):'<div class="empty">Nenhum veículo.</div>'}</div></div>`).join('')}</div>`;}
+function sortTable(col){if(prodSort===col)prodDir*=-1;else{prodSort=col;prodDir=1;}applyFilters();}
+function renderTable(list){const tbody=document.getElementById('tbody');const rows=[...list].sort((a,b)=>{let va=a[prodSort],vb=b[prodSort];if(prodSort==='entrega'){va=a.entregaDate?.getTime()||9999999999999;vb=b.entregaDate?.getTime()||9999999999999;}else{va=norm(va);vb=norm(vb);}return va<vb?-prodDir:va>vb?prodDir:0;});document.getElementById('tableCount').textContent=rows.length+' veículos';tbody.innerHTML=rows.length?rows.map(o=>{hydrateStageDate(o);const [st,cls]=carStatus(o);const dias=o.entradaDate?Math.max(0,Math.round((todayStart()-o.entradaDate)/86400000)):'—';const diasEtapa=typeof o.diasNaEtapa==='number'?`${o.diasNaEtapa} dia(s)`:'—';const etapaCls=typeof o.diasNaEtapa==='number'&&o.diasNaEtapa>=getEtapaPrazoDias(o.etapa)?'tag-err':'tag-info';return `<tr><td class="td-plate">${escapeHtml(o.placa)}</td><td>${escapeHtml(o.veiculo)}</td><td>${escapeHtml(o.cliente)}</td><td>${escapeHtml(o.etapa)}</td><td>${escapeHtml(o.entrada||'—')}</td><td>${escapeHtml(o.entrega||'—')}</td><td><span class="tag ${etapaCls}">${escapeHtml(diasEtapa)}</span></td><td>${dias}</td><td><span class="tag ${cls}">${escapeHtml(st)}</span></td></tr>`;}).join(''):'<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--text-muted)">Nenhum veículo encontrado com os filtros atuais.</td></tr>';}
+window.addEventListener('DOMContentLoaded',startPage);
+
+</script>
+
+<script>
+// PR14: ponte de persistência entre páginas.
+// Evita que os dados se percam ao navegar por Relatórios/Financeiro/Produção/Compras.
+(function(){
+  const KEYS=['melorelatorio','melofluxocaixa','melohoje','melooperacional'];
+  function getRaw(storage,key){try{return storage.getItem(key)||'';}catch(e){return '';}}
+  function setRaw(storage,key,value){try{if(value)storage.setItem(key,value);return true;}catch(e){console.warn('Falha ao preservar dados em storage:',key,e);return false;}}
+  function bestRaw(key){return getRaw(sessionStorage,key)||getRaw(localStorage,key);}
+  function preserveMeloData(){
+    KEYS.forEach(key=>{
+      const raw=bestRaw(key);
+      if(!raw)return;
+      if(!getRaw(sessionStorage,key))setRaw(sessionStorage,key,raw);
+      if(!getRaw(localStorage,key))setRaw(localStorage,key,raw);
+    });
+  }
+  window.preserveMeloData=preserveMeloData;
+  document.addEventListener('DOMContentLoaded',()=>{
+    preserveMeloData();
+    document.querySelectorAll('a.app-tab[href]').forEach(a=>{
+      a.addEventListener('click',()=>preserveMeloData(),{capture:true});
+    });
+  });
+  window.addEventListener('pagehide',preserveMeloData);
+})();
+</script>
+
+</body>
+</html>

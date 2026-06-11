@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Melo Reparos — Relatório de Desempenho</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f0f4f8;--surface:#fff;--surface2:#f7f9fc;--border:#dde3ec;
+  --blue:#1a56db;--blue-lt:#e8f0fd;--blue-mid:#3b6fd4;
+  --yellow:#f5a800;--yellow-lt:#fff8e6;
+  --green:#16a34a;--green-lt:#dcfce7;
+  --red:#dc2626;--red-lt:#fee2e2;
+  --orange:#ea580c;--orange-lt:#ffedd5;
+  --purple:#7c3aed;--purple-lt:#ede9fe;
+  --teal:#0d9488;--teal-lt:#ccfbf1;
+  --text:#0f1b2d;--muted:#5a6a7e;--dim:#94a3b8;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+header{background:var(--blue);padding:0 28px;display:flex;align-items:center;justify-content:space-between;
+  height:62px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(26,86,219,.3);}
+.logo{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:21px;letter-spacing:3px;
+  text-transform:uppercase;color:#fff;display:flex;align-items:center;gap:10px;}
+.logo-bar{width:3px;height:20px;background:var(--yellow);border-radius:2px;}
+.logo-accent{color:var(--yellow);}
+.hdr-right{display:flex;align-items:center;gap:10px;}
+.hbtn{border:none;padding:8px 16px;font-family:'Barlow Condensed',sans-serif;font-weight:800;
+  font-size:13px;letter-spacing:1.2px;text-transform:uppercase;cursor:pointer;border-radius:5px;
+  display:flex;align-items:center;gap:6px;transition:background .15s;white-space:nowrap;}
+.hbtn svg{width:14px;height:14px;}
+.hbtn-yellow{background:var(--yellow);color:#000;}
+.hbtn-yellow:hover{background:#ffc233;}
+.hbtn-outline{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.3);}
+.hbtn-outline:hover{background:rgba(255,255,255,.22);}
+#periodoBar{background:var(--blue-lt);border-bottom:2px solid #c7d8f8;padding:14px 28px;
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.pb-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--blue);}
+.pb-btn{padding:7px 16px;border-radius:5px;border:1.5px solid #c7d8f8;background:#fff;
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:1px;
+  text-transform:uppercase;cursor:pointer;color:var(--muted);transition:all .15s;}
+.pb-btn.active{background:var(--blue);color:#fff;border-color:var(--blue);}
+.pb-btn:hover:not(.active){border-color:var(--blue);color:var(--blue);}
+.pb-divider{width:1px;height:28px;background:#c7d8f8;}
+.pb-input{background:#fff;border:1.5px solid #c7d8f8;border-radius:5px;padding:6px 10px;
+  font-family:'Barlow',sans-serif;font-size:13px;color:var(--text);outline:none;}
+.pb-input:focus{border-color:var(--blue);}
+#periodoLabel{font-size:13px;font-weight:600;color:var(--blue);background:var(--blue-lt);
+  padding:5px 12px;border-radius:20px;border:1px solid #c7d8f8;}
+main{padding:24px 28px;display:flex;flex-direction:column;gap:28px;max-width:1500px;margin:0 auto;}
+.sec{display:flex;flex-direction:column;gap:14px;}
+.sec-hdr{display:flex;align-items:center;gap:12px;}
+.sec-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:17px;
+  letter-spacing:2.5px;text-transform:uppercase;color:var(--blue);}
+.sec-badge{background:var(--blue-lt);border:1px solid #c7d8f8;color:var(--blue-mid);
+  font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;letter-spacing:.5px;text-transform:uppercase;}
+.sec-line{flex:1;height:1px;background:var(--border);}
+.sub-divider{display:flex;align-items:center;gap:8px;margin:4px 0;}
+.sub-divider span{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);}
+.sub-divider div{flex:1;height:1px;background:var(--border);}
+.kpi-grid{display:grid;gap:12px;}
+.g4{grid-template-columns:repeat(4,1fr);}
+.g5{grid-template-columns:repeat(5,1fr);}
+.g3{grid-template-columns:repeat(3,1fr);}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  padding:18px 20px;display:flex;flex-direction:column;gap:5px;
+  box-shadow:0 1px 4px rgba(0,0,0,.05);position:relative;overflow:hidden;}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--kc,var(--blue));}
+.kpi-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);}
+.kpi-value{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:30px;line-height:1;color:var(--text);}
+.kpi-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.kpi-icon{position:absolute;top:14px;right:14px;font-size:22px;opacity:.12;}
+.gauge-wrap{width:100%;height:6px;background:#e5e7eb;border-radius:3px;margin-top:5px;overflow:hidden;}
+.gauge-fill{height:100%;border-radius:3px;transition:width .6s;}
+.prazo-visual{display:flex;gap:20px;align-items:center;flex-wrap:wrap;padding:10px 0 4px;}
+.pv-item{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;}
+.pv-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.fin-box{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05);}
+.fin-row{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border);font-size:13px;}
+.fin-row:last-child{border-bottom:none;}
+.fin-row.total{background:var(--blue);color:#fff;}
+.fin-row.total .fin-val{color:var(--yellow);}
+.fin-row.profit{background:var(--green-lt);}
+.fin-row.profit .fin-val{color:var(--green);font-weight:700;}
+.fin-row.neg{background:var(--red-lt);}
+.fin-row.neg .fin-val{color:var(--red);font-weight:700;}
+.fin-label{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);}
+.fin-row.total .fin-label{color:rgba(255,255,255,.75);}
+.fin-val{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:20px;}
+.tipo-wrap{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05);}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead tr{background:var(--blue);}
+thead th{padding:11px 16px;text-align:left;font-family:'Barlow Condensed',sans-serif;font-weight:700;
+  font-size:11px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.85);white-space:nowrap;}
+th.r,td.r{text-align:right;}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s;}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover{background:var(--surface2);}
+tbody tr.sub td{font-weight:700;color:var(--blue-mid);background:#f0f4ff;}
+tbody tr.grand td{font-weight:700;color:var(--blue);background:var(--blue-lt);font-size:14px;}
+tbody td{padding:11px 16px;vertical-align:middle;}
+.lp{color:var(--green);font-weight:700;}
+.ln{color:var(--red);font-weight:700;}
+#noData{display:none;padding:60px;text-align:center;color:var(--muted);font-size:16px;background:var(--surface);border-radius:10px;border:1px solid var(--border);}
+.data-notice{display:none;background:var(--yellow-lt);border:1px solid #fde68a;border-left:4px solid var(--yellow);border-radius:10px;padding:12px 16px;color:#7c2d12;font-size:13px;line-height:1.45;}
+.data-notice strong{font-family:'Barlow Condensed';font-size:16px;letter-spacing:1px;text-transform:uppercase;color:#92400e;display:block;margin-bottom:2px;}
+.data-notice.error{background:var(--red-lt);border-color:#fecaca;border-left-color:var(--red);color:#7f1d1d;}
+.data-notice.error strong{color:#991b1b;}
+
+.insight-box{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;box-shadow:0 1px 4px rgba(0,0,0,.05);display:flex;flex-direction:column;gap:8px;}
+.insight-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:16px;letter-spacing:1.7px;text-transform:uppercase;color:var(--blue);}
+.insight-list{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+.insight-item{background:var(--surface2);border:1px solid var(--border);border-left:4px solid var(--blue);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--muted);line-height:1.35;}
+.insight-item strong{display:block;color:var(--text);font-size:13px;margin-bottom:2px;}
+@media(max-width:800px){.insight-list{grid-template-columns:1fr;}}
+
+@media print{
+  header,#periodoBar{display:none!important;}
+  body{background:#fff;}
+  main{padding:10px;}
+  .kpi,.fin-box,.tipo-wrap{break-inside:avoid;}
+  #sCarros{break-before:page;page-break-before:always;}
+  #carrosTable{font-size:11px;}
+  #carrosTable th,#carrosTable td{padding:8px 10px;}
+}
+@media(max-width:900px){.fin-grid{grid-template-columns:1fr!important;}}
+::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+
+
+/* ── NAVEGAÇÃO PRINCIPAL (PR11) ── */
+.app-tabs{position:sticky;top:62px;z-index:170;background:rgba(255,255,255,.96);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.04);padding:8px 24px;display:flex;align-items:center;gap:8px;overflow-x:auto;scrollbar-width:thin;}
+.app-tab{border:1px solid var(--border);background:var(--surface2);color:var(--text-muted);font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:12px;letter-spacing:1.2px;text-transform:uppercase;text-decoration:none;border-radius:999px;padding:8px 13px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;cursor:pointer;transition:background .15s,border-color .15s,color .15s,transform .1s;}
+.app-tab:hover{background:var(--blue-light);border-color:#c7d8f8;color:var(--blue);transform:translateY(-1px);}
+.app-tab.active{background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:0 2px 8px rgba(26,86,219,.18);}
+.app-tab.danger{border-color:#fecaca;background:var(--red-lt);color:var(--red);}
+.app-tab.danger:hover{background:#fecaca;color:#991b1b;}
+@media(max-width:760px){.app-tabs{top:auto;position:relative;padding:8px 12px;}.app-tab{font-size:11px;padding:7px 11px;}}
+
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-bar"></div>
+    Melo<span class="logo-accent">&nbsp;Reparos</span>
+    <span style="font-size:13px;font-weight:400;letter-spacing:1px;opacity:.55;margin-left:6px">/ Relatório</span>
+  </div>
+  <div class="hdr-right">
+    <button class="hbtn hbtn-outline" onclick="window.print()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      Imprimir
+    </button>
+    <button class="hbtn hbtn-yellow" onclick="window.close()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      Fechar
+    </button>
+  </div>
+</header>
+<nav class="app-tabs" aria-label="Navegação principal">
+  <a class="app-tab" href="oficina_dashboard.html" onclick="if(window.preserveMeloData)window.preserveMeloData()">🏠 Visão Geral</a>
+  <a class="app-tab" href="hoje.html">📅 Hoje</a>
+  <a class="app-tab" href="producao.html">🛠️ Produção</a>
+  <a class="app-tab" href="compras.html">🧾 Compras</a>
+  <a class="app-tab" href="fluxo_caixa.html">💸 Financeiro</a>
+  <a class="app-tab active" href="relatorio.html">📊 Relatórios</a>
+</nav>
+
+<div id="periodoBar">
+  <span class="pb-label">Período</span>
+  <button class="pb-btn active" id="btnMes" onclick="selectMes()">Mês Atual</button>
+  <button class="pb-btn" id="btnCustom" onclick="toggleCustom()">Período Específico</button>
+  <div class="pb-divider"></div>
+  <div id="customRange" style="display:none;align-items:center;gap:8px;">
+    <span class="pb-label">De</span>
+    <input type="date" id="dtIni" class="pb-input" onchange="applyCustom()">
+    <span class="pb-label">Até</span>
+    <input type="date" id="dtFim" class="pb-input" onchange="applyCustom()">
+  </div>
+  <span id="periodoLabel"></span>
+</div>
+
+<main>
+  <div id="dataNotice" class="data-notice" role="status" aria-live="polite"></div>
+  <div id="noData"><strong>📭 Nenhum dado encontrado</strong><br>Não há carros entregues ou registrados no período selecionado.</div>
+
+  <div class="sec" id="sProducao">
+    <div class="sec-hdr"><span class="sec-title">📦 Produção &amp; Volume</span><span class="sec-badge" id="bProducao"></span><div class="sec-line"></div></div>
+    <div class="kpi-grid g4" id="kProducao"></div>
+  </div>
+
+  <div class="sec" id="sPrazos">
+    <div class="sec-hdr"><span class="sec-title">⏱ Prazos Operacionais</span><span class="sec-badge" id="bPrazos"></span><div class="sec-line"></div></div>
+    <div class="kpi-grid g5" id="kPrazos"></div>
+    <div id="prazosVis"></div>
+  </div>
+
+
+  <div class="sec" id="sGestao">
+    <div class="sec-hdr"><span class="sec-title">📈 Leitura Gerencial</span><span class="sec-badge">Decisão</span><div class="sec-line"></div></div>
+    <div class="kpi-grid g4" id="kGestao"></div>
+    <div id="gestaoInsights"></div>
+  </div>
+
+  <div class="sec" id="sFin">
+    <div class="sec-hdr"><span class="sec-title">💰 Financeiro</span><span class="sec-badge">Ticket &amp; Margens</span><div class="sec-line"></div></div>
+    <div class="sub-divider"><span>Ticket Médio</span><div></div></div>
+    <div class="kpi-grid g3" id="kTicket"></div>
+    <div class="sub-divider" style="margin-top:8px"><span>Peças</span><div></div></div>
+    <div class="kpi-grid g3" id="kPecas"></div>
+    <div class="sub-divider" style="margin-top:8px"><span>Resumo do Período</span><div></div></div>
+    <div id="finResumo"></div>
+  </div>
+
+  <div class="sec" id="sTipo">
+    <div class="sec-hdr"><span class="sec-title">👥 Por Tipo de Cliente</span><span class="sec-badge">Segmentação</span><div class="sec-line"></div></div>
+    <div class="tipo-wrap">
+      <table>
+        <thead><tr>
+          <th>Tipo</th><th class="r">Carros</th><th class="r">Total M.O</th>
+          <th class="r">Peças Oficina</th><th class="r">Total Orçamento</th>
+          <th class="r">Ticket Médio</th><th class="r">% do Total</th>
+        </tr></thead>
+        <tbody id="tipoTbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="sec" id="sCarros">
+    <div class="sec-hdr"><span class="sec-title">🚗 Carros do Período</span><span class="sec-badge" id="bCarros"></span><div class="sec-line"></div></div>
+    <div class="tipo-wrap">
+      <table id="carrosTable">
+        <thead><tr>
+          <th>Carro</th><th>Cor</th><th>Placa</th><th>Tipo</th>
+          <th class="r">Tempo em Reparo</th><th class="r">Data da Entrega</th>
+          <th class="r">Valor Peças</th><th class="r">Valor M.O</th><th class="r">Valor Total</th>
+        </tr></thead>
+        <tbody id="carrosTbody"></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<script>
+// Try to load data from dashboard via sessionStorage.
+// PR5: o relatório não carrega mais uma base demo gigante embutida.
+// Isso deixa o HTML mais leve e evita confusão entre dados reais e dados de teste.
+function readStoredJSON(key){
+  const sources=[sessionStorage,localStorage];
+  for(const source of sources){
+    try{
+      const raw=source.getItem(key);
+      if(raw)return JSON.parse(raw);
+    }catch(e){console.warn('Falha ao ler dados salvos:',key,e);}
+  }
+  return null;
+}
+function hasStoredKey(key){
+  try{if(sessionStorage.getItem(key))return true;}catch(e){}
+  try{if(localStorage.getItem(key))return true;}catch(e){}
+  return false;
+}
+
+let RAW={orcs:[],itens:[],compras:[]};
+let _relatorioSemDadosDashboard=false;
+let _relatorioErroStorage=false;
+try{
+  const parsed=readStoredJSON('melorelatorio');
+  if(parsed){
+    RAW={
+      ...parsed,
+      orcs:Array.isArray(parsed.orcs)?parsed.orcs:[],
+      itens:Array.isArray(parsed.itens)?parsed.itens:[],
+      compras:Array.isArray(parsed.compras)?parsed.compras:[]
+    };
+  }else{
+    _relatorioSemDadosDashboard=true;
+  }
+}catch(e){
+  console.error(e);
+  _relatorioErroStorage=true;
+  RAW={orcs:[],itens:[],compras:[]};
+}
+
+
+function pad2(n){return String(n).padStart(2,'0');}
+function ymdLocal(d){return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;}
+function R(s){
+  if(!s)return null;
+  const m=String(s).match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return m?new Date(Number(m[1]),Number(m[2])-1,Number(m[3]),12,0,0):new Date(s);
+}
+function inRange(d,a,b){if(!d)return false;d=R(d);return d>=a&&d<=b;}
+function escapeHtml(v){return String(v??'—').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+function showDataNotice(title,msg,type='warn'){const el=document.getElementById('dataNotice');if(!el)return;el.className='data-notice '+(type==='error'?'error':'');el.innerHTML=`<strong>${escapeHtml(title)}</strong><span>${escapeHtml(msg)}</span>`;el.style.display='block';}
+function clearDataNotice(){const el=document.getElementById('dataNotice');if(el){el.style.display='none';el.innerHTML='';}}
+function fmt(v){return'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fN(v,d=1){return Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});}
+function dDiff(a,b){return Math.round((R(b)-R(a))/(864e5));}
+function gauge(pct,color){return`<div class="gauge-wrap"><div class="gauge-fill" style="width:${Math.min(pct,100)}%;background:${color}"></div></div>`;}
+function kpi(label,value,sub,icon,color){
+  return`<div class="kpi" style="--kc:${color||'var(--blue)'}">
+    <div class="kpi-label">${label}</div>
+    <div class="kpi-value">${value}</div>
+    ${sub?`<div class="kpi-sub">${sub}</div>`:''}
+    ${icon?`<div class="kpi-icon">${icon}</div>`:''}
+  </div>`;}
+
+let INI,FIM;
+
+function selectMes(){
+  document.getElementById('btnMes').classList.add('active');
+  document.getElementById('btnCustom').classList.remove('active');
+  document.getElementById('customRange').style.display='none';
+  const n=new Date();
+  INI=new Date(n.getFullYear(),n.getMonth(),1);
+  FIM=new Date(n.getFullYear(),n.getMonth()+1,0);
+  updateLabel();render();
+}
+function toggleCustom(){
+  document.getElementById('btnCustom').classList.add('active');
+  document.getElementById('btnMes').classList.remove('active');
+  document.getElementById('customRange').style.display='flex';
+  const n=new Date();
+  const i=new Date(n.getFullYear(),n.getMonth(),1);
+  const f=new Date(n.getFullYear(),n.getMonth()+1,0);
+  document.getElementById('dtIni').value=ymdLocal(i);
+  document.getElementById('dtFim').value=ymdLocal(f);
+  INI=i;FIM=f;updateLabel();render();
+}
+function applyCustom(){
+  const i=document.getElementById('dtIni').value,f=document.getElementById('dtFim').value;
+  if(!i||!f)return;
+  INI=R(i);INI.setHours(0,0,0,0);FIM=R(f);FIM.setHours(23,59,59,999);
+  updateLabel();render();
+}
+function updateLabel(){
+  const opts={day:'2-digit',month:'2-digit',year:'numeric'};
+  document.getElementById('periodoLabel').textContent=
+    INI.toLocaleDateString('pt-BR',opts)+' – '+FIM.toLocaleDateString('pt-BR',opts);
+}
+
+function render(){
+  if(_relatorioErroStorage){
+    showDataNotice('Erro ao carregar dados','Os dados salvos no navegador estão inválidos. Importe a planilha novamente pelo dashboard.','error');
+  }else if(_relatorioSemDadosDashboard){
+    showDataNotice('Relatório sem dados','Abra este relatório pelo dashboard após importar a planilha para visualizar dados reais.','warn');
+  }else{clearDataNotice();}
+  // Prep
+  const INIs=ymdLocal(INI);
+  const FIMs=ymdLocal(FIM);
+  function inR(d){if(!d)return false;return d>=INIs&&d<=FIMs;}
+
+  const delivered=RAW.orcs.filter(o=>o.entregue&&inR(o.entregue));
+  const entered=RAW.orcs.filter(o=>o.entrada&&inR(o.entrada));
+  const compPeriod=RAW.compras.filter(c=>c.data&&inR(c.data));
+
+  const secs=['sProducao','sPrazos','sGestao','sFin','sTipo','sCarros'];
+  if(!delivered.length&&!entered.length){
+    document.getElementById('noData').style.display='block';
+    secs.forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+    return;
+  }
+  document.getElementById('noData').style.display='none';
+  secs.forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='';});
+
+  const delivIds=new Set(delivered.map(o=>o.orcId));
+  const itensD=RAW.itens.filter(i=>delivIds.has(i.orcId));
+
+  // ── PRODUÇÃO ──
+  const qE=entered.length, qD=delivered.length;
+  const totalPint=itensD.filter(i=>Number(i.pinturas)>0).length;
+  const mediaPeca=qD>0?totalPint/qD:0;
+
+  document.getElementById('bProducao').textContent=qD+' entregues';
+  document.getElementById('kProducao').innerHTML=
+    kpi('Entradas no Período',qE,'veículos recebidos','🔑','var(--blue)')+
+    kpi('Veículos Entregues',qD,'finalizados e retirados','✅','var(--green)')+
+    kpi('Peças Pintadas',fN(totalPint,0),'itens com pintura maior que zero','🎨','var(--purple)')+
+    kpi('Média Peça / Carro',fN(mediaPeca),'qtd. de peças pintadas por veículo','📊','var(--teal)');
+
+  // ── PRAZOS ──
+  let noPrazo=0,comAtraso=0,antesP=0,somaT=0,cntT=0;
+  delivered.forEach(o=>{
+    if(o.prevEntrega&&o.entregue){
+      const d=dDiff(o.prevEntrega,o.entregue);
+      if(d<=0)noPrazo++;
+      if(d>0)comAtraso++;
+      if(d<0)antesP++;
+    }
+    if(o.entrada&&o.entregue){somaT+=dDiff(o.entrada,o.entregue);cntT++;}
+  });
+  const tmedio=cntT>0?somaT/cntT:0;
+  const pNP=qD>0?Math.round(noPrazo/qD*100):0;
+  const pCA=qD>0?Math.round(comAtraso/qD*100):0;
+  const pAP=qD>0?Math.round(antesP/qD*100):0;
+
+  document.getElementById('bPrazos').textContent=pNP+'% no prazo';
+  document.getElementById('kPrazos').innerHTML=
+    kpi('Carros Entregues',qD,'no período','📦','var(--blue)')+
+    kpi('No Prazo',`${noPrazo} <span style="font-size:16px;color:var(--muted)">(${pNP}%)</span>`,
+      gauge(pNP,'var(--green)'),'✅','var(--green)')+
+    kpi('Com Atraso',`${comAtraso} <span style="font-size:16px;color:var(--muted)">(${pCA}%)</span>`,
+      gauge(pCA,'var(--red)'),'⚠️','var(--red)')+
+    kpi('Antes do Prazo',`${antesP} <span style="font-size:16px;color:var(--muted)">(${pAP}%)</span>`,
+      gauge(pAP,'var(--blue-mid)'),'🏆','var(--blue-mid)')+
+    kpi('Tempo Médio Reparo',`${fN(tmedio,0)} <span style="font-size:18px;font-weight:400">dias</span>`,
+      `base: ${cntT} veículos com entrada e saída`,'⏱','var(--orange)');
+
+  document.getElementById('prazosVis').innerHTML=`
+    <div class="prazo-visual">
+      <div class="pv-item"><div class="pv-dot" style="background:var(--green)"></div>No prazo / antes: ${noPrazo} (${pNP}%)</div>
+      <div class="pv-item"><div class="pv-dot" style="background:var(--red)"></div>Com atraso: ${comAtraso} (${pCA}%)</div>
+      <div class="pv-item"><div class="pv-dot" style="background:var(--blue)"></div>Antes do prazo: ${antesP} (${pAP}%)</div>
+    </div>`;
+
+  // ── FINANCEIRO ──
+  const totalMO=delivered.reduce((s,o)=>s+(o.mo||0),0);
+  const totalPO=delivered.reduce((s,o)=>s+(o.pecasOficina||0),0);
+  const totalOrc=delivered.reduce((s,o)=>s+(o.total||0),0);
+  const totalPecaSeg=delivered.reduce((s,o)=>s+Math.max(0,(o.total||0)-(o.mo||0)-(o.pecasOficina||0)),0);
+  const tMO=qD>0?totalMO/qD:0;
+  const tMOPeca=totalPint>0?totalMO/totalPint:0;
+  const tTotal=qD>0?totalOrc/qD:0;
+
+  const custoPecas=itensD
+    .filter(i=>i.forn&&!['SEGURADORA','CLIENTE'].includes(i.forn.toUpperCase()))
+    .reduce((s,i)=>s+(i.custo||0),0);
+  const lucroPecas=totalPO-custoPecas;
+  const totalComp=compPeriod.reduce((s,c)=>s+(c.total||0),0);
+  // Total de compras já contempla o custo das peças.
+  // Para não descontar o custo das peças duas vezes, separamos as outras compras.
+  const outrasCompras=Math.max(0,totalComp-custoPecas);
+  const lucroFinal=totalMO+lucroPecas-outrasCompras;
+
+  // ── LEITURA GERENCIAL ──
+  const saldoOperacional=totalOrc-totalComp;
+  const conversaoPeriodo=qE>0?Math.round(qD/qE*100):0;
+  const atrasoMedio=comAtraso>0?delivered.filter(o=>o.prevEntrega&&o.entregue&&dDiff(o.prevEntrega,o.entregue)>0).reduce((s,o)=>s+dDiff(o.prevEntrega,o.entregue),0)/comAtraso:0;
+  const porTipoTop={};
+  delivered.forEach(o=>{const t=o.tipo||'Não informado';if(!porTipoTop[t])porTipoTop[t]={qtd:0,total:0};porTipoTop[t].qtd++;porTipoTop[t].total+=(o.total||0);});
+  const topTipo=Object.entries(porTipoTop).sort((a,b)=>b[1].total-a[1].total)[0];
+  const topTipoNome=topTipo?topTipo[0]:'—';
+  const topTipoTotal=topTipo?topTipo[1].total:0;
+  const margemPecas=totalPO?Math.round((lucroPecas/totalPO)*100):0;
+  const riscoPrazo=pCA>=30?'Alto':pCA>=15?'Médio':'Controlado';
+  const riscoCor=pCA>=30?'var(--red)':pCA>=15?'var(--orange)':'var(--green)';
+  document.getElementById('kGestao').innerHTML=
+    kpi('Conversão do Período',`${conversaoPeriodo}%`,`${qD} entregues / ${qE} entradas`,'🔄','var(--blue)')+
+    kpi('Risco de Prazo',riscoPrazo,`${comAtraso} atrasados · média ${fN(atrasoMedio,0)} dia(s)`,'⚠️',riscoCor)+
+    kpi('Segmento Líder',escapeHtml(topTipoNome),`${fmt(topTipoTotal)} no período`,'👥','var(--purple)')+
+    kpi('Margem em Peças',`${margemPecas}%`,`${fmt(lucroPecas)} de lucro estimado`,'🔧',margemPecas>=0?'var(--green)':'var(--red)');
+  document.getElementById('gestaoInsights').innerHTML=`
+    <div class="insight-box">
+      <div class="insight-title">Recomendações automáticas</div>
+      <div class="insight-list">
+        <div class="insight-item" style="border-left-color:${riscoCor}"><strong>Prazo</strong>${pCA>=30?'Atraso alto. Avalie gargalos de agenda, peças e etapas internas.':pCA>=15?'Atraso moderado. Monitore entregas críticas da semana.':'Prazo sob controle para o período selecionado.'}</div>
+        <div class="insight-item" style="border-left-color:var(--green)"><strong>Financeiro</strong>Resultado operacional estimado: ${fmt(lucroFinal)} antes de outros custos fixos.</div>
+        <div class="insight-item" style="border-left-color:var(--purple)"><strong>Cliente</strong>${escapeHtml(topTipoNome)} é o segmento com maior valor entregue no período.</div>
+        <div class="insight-item" style="border-left-color:var(--orange)"><strong>Peças</strong>${margemPecas<0?'Peças com margem negativa. Revise custos e repasses.':'Margem de peças positiva no período selecionado.'}</div>
+      </div>
+    </div>`;
+
+  document.getElementById('kTicket').innerHTML=
+    kpi('Ticket Médio M.O / Carro',fmt(tMO),'mão de obra por veículo','💰','var(--blue)')+
+    kpi('Ticket M.O / Peça Pintada',fmt(tMOPeca),'m.o dividida pela qtd. de peças pintadas','🎨','var(--purple)')+
+    kpi('Ticket Médio Total',fmt(tTotal),'valor total por veículo','📋','var(--teal)');
+
+  const lpClass=lucroPecas>=0?'lp':'ln';
+  const lfClass=lucroFinal>=0?'lp':'ln';
+  document.getElementById('kPecas').innerHTML=
+    kpi('Valor Peças (Oficina)',fmt(totalPO),'faturado em peças','🔧','var(--orange)')+
+    kpi('Custo das Peças',fmt(custoPecas),'parte das compras vinculada a peças','🛒','var(--red)')+
+    kpi('Lucro em Peças',`<span class="${lpClass}">${fmt(lucroPecas)}</span>`,
+      'valor peças − custo das peças',lucroPecas>=0?'📈':'📉',lucroPecas>=0?'var(--green)':'var(--red)');
+
+  const lfRow=lucroFinal>=0?'fin-row profit':'fin-row neg';
+  document.getElementById('finResumo').innerHTML=`
+    <div class="fin-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div>
+        <div class="sub-divider" style="margin:0 0 8px;"><span>Totais</span><div></div></div>
+        <div class="fin-box">
+          <div class="fin-row"><span class="fin-label">💼 Total Mão de Obra</span><span class="fin-val" style="color:var(--blue)">${fmt(totalMO)}</span></div>
+          <div class="fin-row"><span class="fin-label">🔧 Total de Peça pela Oficina</span><span class="fin-val" style="color:var(--orange)">${fmt(totalPO)}</span></div>
+          <div class="fin-row"><span class="fin-label">🛡️ Total de Peça pelo Seguro</span><span class="fin-val" style="color:var(--teal)">${fmt(totalPecaSeg)}</span></div>
+          <div class="fin-row total"><span class="fin-label">📋 Total Orçamento</span><span class="fin-val">${fmt(totalOrc)}</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="sub-divider" style="margin:0 0 8px;"><span>Resultado</span><div></div></div>
+        <div class="fin-box">
+          <div class="fin-row"><span class="fin-label">💼 Total de Mão de Obra</span><span class="fin-val" style="color:var(--blue)">${fmt(totalMO)}</span></div>
+          <div class="fin-row"><span class="fin-label">🔧 Valor Vendido em Peças</span><span class="fin-val" style="color:var(--orange)">${fmt(totalPO)}</span></div>
+          <div class="fin-row"><span class="fin-label">🧾 Custo das Peças</span><span class="fin-val" style="color:var(--red)">${fmt(custoPecas)}</span></div>
+          <div class="fin-row"><span class="fin-label">📈 Lucro Total de Peças</span><span class="fin-val ${lpClass}">${fmt(lucroPecas)}</span></div>
+          <div class="fin-row"><span class="fin-label">🛒 Total de Compras</span><span class="fin-val" style="color:var(--red)">${fmt(totalComp)}</span></div>
+          <div class="fin-row"><span class="fin-label">📦 Outras Compras (compras − custo peças)</span><span class="fin-val" style="color:var(--red)">${fmt(outrasCompras)}</span></div>
+          <div class="${lfRow}"><span class="fin-label">💰 Resultado Estimado (M.O + Lucro Peças − Outras Compras)</span><span class="fin-val ${lfClass}">${fmt(lucroFinal)}</span></div>
+        </div>
+      </div>
+    </div>`;
+
+  // ── TIPO CLIENTE ──
+  const GRUPOS=[
+    {label:'Segurado',tipos:['Segurado'],cls:''},
+    {label:'Terceiro',tipos:['Terceiro'],cls:''},
+    {label:'∑ Consolidado Seguro',tipos:['Segurado','Terceiro'],cls:'sub'},
+    {label:'Particular',tipos:['Particular'],cls:''},
+    {label:'Logista',tipos:['Logista'],cls:''},
+    {label:'Carglass',tipos:['Carglass'],cls:''},
+    {label:'Maxpar',tipos:['Maxpar'],cls:''},
+    {label:'∑ Consolidado Reparo Rápido',tipos:['Carglass','Maxpar'],cls:'sub'},
+  ];
+  function grp(tipos){
+    const cars=delivered.filter(o=>tipos.includes(o.tipo));
+    const q=cars.length;
+    const mo=cars.reduce((s,o)=>s+(o.mo||0),0);
+    const pc=cars.reduce((s,o)=>s+(o.pecasOficina||0),0);
+    const tot=cars.reduce((s,o)=>s+(o.total||0),0);
+    return{q,mo,pc,tot,ticket:q>0?tot/q:0};
+  }
+  let rows='';
+  GRUPOS.forEach(g=>{
+    const d=grp(g.tipos);
+    if(d.q===0&&!g.cls)return;
+    const pct=totalOrc>0?d.tot/totalOrc*100:0;
+    rows+=`<tr class="${g.cls}">
+      <td>${escapeHtml(g.label)}</td><td class="r">${d.q}</td>
+      <td class="r">${fmt(d.mo)}</td><td class="r">${fmt(d.pc)}</td>
+      <td class="r">${fmt(d.tot)}</td><td class="r">${fmt(d.ticket)}</td>
+      <td class="r">${fN(pct)}%${gauge(pct,'var(--blue)')}</td>
+    </tr>`;
+  });
+  const gt=grp([...new Set(GRUPOS.flatMap(g=>g.tipos))]);
+  gt.q=qD;gt.mo=totalMO;gt.pc=totalPO;gt.tot=totalOrc;gt.ticket=qD>0?totalOrc/qD:0;
+  rows+=`<tr class="grand">
+    <td>🏆 Total Geral</td><td class="r">${gt.q}</td>
+    <td class="r">${fmt(gt.mo)}</td><td class="r">${fmt(gt.pc)}</td>
+    <td class="r">${fmt(gt.tot)}</td><td class="r">${fmt(gt.ticket)}</td>
+    <td class="r">100%</td>
+  </tr>`;
+  document.getElementById('tipoTbody').innerHTML=rows;
+
+  // ── CARROS DO PERÍODO ──
+  function firstVal(obj,keys,fb='—'){
+    for(const k of keys){
+      const v=obj&&obj[k];
+      if(v!==undefined&&v!==null&&String(v).trim()!=='')return v;
+    }
+    return fb;
+  }
+
+  // Busca dados complementares da base BD_ORCAMENTOS quando ela estiver disponível no RAW.
+  // Mapeamento informado: coluna D = carro, coluna F = cor. Por proximidade, coluna E é usada como placa.
+  function getExtraOrcamento(orcId){
+    const fontes=[
+      RAW.BD_ORCAMENTOS,
+      RAW.bd_orcamentos,
+      RAW.bdOrcamentos,
+      RAW.orcamentos,
+      RAW.BD_ORCAMENTO
+    ].filter(Array.isArray);
+
+    for(const fonte of fontes){
+      for(const row of fonte){
+        let id, carro, placa, cor;
+
+        if(Array.isArray(row)){
+          id=row[0]??row[1]??row[2];
+          carro=row[3]; // coluna D
+          placa=row[4]; // coluna E
+          cor=row[5];   // coluna F
+        }else if(row&&typeof row==='object'){
+          id=row.orcId??row.id??row.orcamento??row.numero??row.codigo??row['ORCAMENTO']??row['Orçamento'];
+          carro=row.carro??row.veiculo??row.veículo??row.modelo??row['CARRO']??row['Carro']??row['D'];
+          placa=row.placa??row['PLACA']??row['Placa']??row['E'];
+          cor=row.cor??row['COR']??row['Cor']??row['F'];
+        }
+
+        if(String(id)===String(orcId)){
+          return {carro,placa,cor};
+        }
+      }
+    }
+    return {};
+  }
+  const esc=escapeHtml;
+  const bCarros=document.getElementById('bCarros');
+  if(bCarros)bCarros.textContent=qD+' veículos';
+  const carrosRows=delivered.slice().sort((a,b)=>(a.entregue||'').localeCompare(b.entregue||'')).map(o=>{
+    const extra=getExtraOrcamento(o.orcId);
+    const carro=firstVal({...extra,...o},['carro','veiculo','veículo','modelo','marcaModelo','descricaoVeiculo','descricao']);
+    const cor=firstVal({...extra,...o},['cor','corVeiculo','cor_veiculo']);
+    const placa=firstVal({...extra,...o},['placa','placaVeiculo','placa_veiculo'],o.orcId?`OS ${o.orcId}`:'—');
+    const dias=(o.entrada&&o.entregue)?dDiff(o.entrada,o.entregue):null;
+    const tempo=dias!==null?`${dias} ${dias===1?'dia':'dias'}`:'—';
+    const dataEntrega=o.entregue?R(o.entregue).toLocaleDateString('pt-BR'):'—';
+    return`<tr>
+      <td>${esc(carro)}</td>
+      <td>${esc(cor)}</td>
+      <td style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:14px;letter-spacing:1.5px;color:var(--blue)">${esc(placa)}</td>
+      <td>${esc(o.tipo||'—')}</td>
+      <td class="r">${tempo}</td>
+      <td class="r">${dataEntrega}</td>
+      <td class="r">${fmt(o.pecasOficina)}</td>
+      <td class="r">${fmt(o.mo)}</td>
+      <td class="r" style="font-weight:700">${fmt(o.total)}</td>
+    </tr>`;
+  }).join('');
+  const carrosTbody=document.getElementById('carrosTbody');
+  if(carrosTbody)carrosTbody.innerHTML=carrosRows||'<tr><td colspan="9" style="text-align:center;padding:20px;color:var(--muted)">Nenhum carro encontrado no período.</td></tr>';
+}
+
+document.addEventListener('DOMContentLoaded',()=>selectMes());
+</script>
+
+<script>
+// PR14: ponte de persistência entre páginas.
+// Evita que os dados se percam ao navegar por Relatórios/Financeiro/Produção/Compras.
+(function(){
+  const KEYS=['melorelatorio','melofluxocaixa','melohoje','melooperacional'];
+  function getRaw(storage,key){try{return storage.getItem(key)||'';}catch(e){return '';}}
+  function setRaw(storage,key,value){try{if(value)storage.setItem(key,value);return true;}catch(e){console.warn('Falha ao preservar dados em storage:',key,e);return false;}}
+  function bestRaw(key){return getRaw(sessionStorage,key)||getRaw(localStorage,key);}
+  function preserveMeloData(){
+    KEYS.forEach(key=>{
+      const raw=bestRaw(key);
+      if(!raw)return;
+      if(!getRaw(sessionStorage,key))setRaw(sessionStorage,key,raw);
+      if(!getRaw(localStorage,key))setRaw(localStorage,key,raw);
+    });
+  }
+  window.preserveMeloData=preserveMeloData;
+  document.addEventListener('DOMContentLoaded',()=>{
+    preserveMeloData();
+    document.querySelectorAll('a.app-tab[href]').forEach(a=>{
+      a.addEventListener('click',()=>preserveMeloData(),{capture:true});
+    });
+  });
+  window.addEventListener('pagehide',preserveMeloData);
+})();
+</script>
+
+</body>
+</html>
