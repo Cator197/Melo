@@ -4,7 +4,7 @@ window.MeloComponents = (() => {
     const text = status.toLowerCase();
     if (text.includes('final') || text.includes('recebido') || text.includes('pago') || text.includes('entregue') || text.includes('aprovado')) return 'success';
     if (text.includes('aguard') || text.includes('aberto') || text.includes('vencendo')) return 'warning';
-    if (text.includes('pendente') || text.includes('atras')) return 'danger';
+    if (text.includes('pendente') || text.includes('atras') || text.includes('vencido')) return 'danger';
     if (text.includes('terceir')) return 'purple';
     return 'primary';
   };

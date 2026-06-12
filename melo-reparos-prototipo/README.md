@@ -1,6 +1,6 @@
 # Melo Reparos — Protótipo
 
-Fundação visual, técnica e de navegação do futuro sistema administrativo da Melo Reparos.
+Protótipo visual, técnico e navegável do futuro sistema administrativo da Melo Reparos, atualizado com a Central do Dia e a Agenda operacional da Etapa 2.
 
 ## Estrutura
 
@@ -110,16 +110,19 @@ Os dados estão centralizados em `assets/js/mock-data.js`, com IDs e relacioname
 - 8 Ordens de Serviço;
 - 7 etapas de produção;
 - 4 condições paralelas;
-- 3 complementos;
+- 4 complementos;
 - 5 fornecedores;
-- 4 compras;
-- 5 contas a receber;
-- 5 contas a pagar;
+- 5 compras;
+- 6 contas a receber;
+- 6 contas a pagar;
+- 2 veículos em fila;
+- 14 eventos de agenda;
+- limites esperados por etapa produtiva;
 - 3 usuários.
 
 As etapas principais são Desmontagem, Funilaria, Preparação, Pintura, Montagem, Polimento e Finalizado. As condições paralelas são Aguardando peça, Aguardando autorização, Complemento pendente e Serviço terceirizado.
 
-A OS `OS-1001` atende ao cenário crítico solicitado: veículo em Funilaria, aguardando peça e com complemento aguardando aprovação.
+A OS `OS-1001` atende ao cenário crítico solicitado: veículo em Funilaria, aguardando peça e com complemento aguardando aprovação. A Etapa 2 também inclui dados de filas, eventos, contas vencidas, chegada de peças e tempo de permanência por etapa para alimentar os indicadores da Central do Dia e a Agenda.
 
 ## Navegação e responsividade
 
@@ -130,9 +133,8 @@ A OS `OS-1001` atende ao cenário crítico solicitado: veículo em Funilaria, ag
 
 ## Limitações atuais
 
-Esta etapa entrega apenas a fundação do protótipo. Ainda não foram implementados:
+Esta etapa mantém o protótipo como uma simulação sem persistência real. Ainda não foram implementados:
 
-- Kanban completo de produção;
 - detalhes completos da OS;
 - fluxo financeiro completo;
 - relatórios funcionais;
