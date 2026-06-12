@@ -218,3 +218,115 @@ Para integrar a Etapa 3, foram feitos ajustes mínimos de navegação e indicado
 ```text
 feat: implementa módulo de ordens de serviço do protótipo
 ```
+
+---
+
+## Etapa 4 — Produção e Complementos
+
+A Etapa 4 aprofunda o protótipo operacional sem recriar o projeto e mantendo HTML, CSS e JavaScript puro. Os dados continuam centralizados em `assets/js/mock-data.js`, com complementos de sessão preparados por `assets/js/pages/production-core.js`.
+
+### Arquivos criados na Etapa 4
+
+- `paginas/complemento-detalhes.html`
+- `assets/js/pages/production-core.js`
+- `assets/js/pages/production-module.js`
+- `assets/js/pages/complements-module.js`
+
+### Arquivos modificados na Etapa 4
+
+- `paginas/producao.html`
+- `paginas/complementos.html`
+- `paginas/ordem-servico-detalhes.html`
+- demais páginas em `paginas/` para carregar os scripts compartilhados da Etapa 4
+- `assets/js/pages/page-renderers.js`
+- `assets/js/navigation.js`
+- `assets/css/components.css`
+- `README.md`
+
+### Produção
+
+A página `paginas/producao.html` entrega:
+
+- cabeçalho com breadcrumb, data atual fictícia, última atualização, atualizar, movimentar veículo, configurar etapas e exportar visão;
+- indicadores clicáveis para oficina, produção, aguardando peça, complemento pendente, atrasos, sem movimentação, entregas de hoje e finalizados aguardando entrega;
+- Kanban por etapa principal: Desmontagem, Funilaria, Preparação, Pintura, Montagem e Polimento;
+- áreas separadas para aguardando agendamento, agendados e finalizados aguardando entrega;
+- cards com placa, veículo, cliente, OS, dias na etapa, limite, previsão, condições paralelas, peças, complementos, prioridade e ações rápidas;
+- tabela com ordenação e densidade compacta/confortável;
+- agenda semanal de segunda a sábado para entradas, entregas, peças, complementos e finalizações;
+- filtros operacionais aplicados em Kanban, tabela e agenda;
+- bloco de veículos há muito tempo na etapa;
+- capacidade fictícia por setor produtivo;
+- movimentação simulada por botão e por arrastar/soltar: o drop abre modal de confirmação antes de alterar dados;
+- retorno de etapa com motivo obrigatório e opção de retrabalho;
+- gerenciamento de condição paralela com inclusão e encerramento no modal de movimentação.
+
+### Complementos
+
+A página `paginas/complementos.html` entrega:
+
+- indicadores de rascunhos, aguardando envio, aguardando aprovação, aprovados, aprovados parcialmente, recusados, atrasados e valor aguardando aprovação;
+- filtros por pesquisa, número, OS, placa, cliente, seguradora, status, período, dias aguardando, impacto e valores;
+- visualização em tabela e cards;
+- criação simulada de novo complemento, vinculando a OS e adicionando condição paralela “Complemento pendente”;
+- ações simuladas de aprovação, aprovação parcial e recusa, com impacto na OS.
+
+A página `paginas/complemento-detalhes.html?id=comp-003` entrega:
+
+- estado de não encontrado quando o ID não existe;
+- cabeçalho com complemento, OS, placa, veículo, cliente, seguradora, status, valores, dias aguardando, previsão e impacto;
+- ações de editar, enviar, aprovação, aprovação parcial, recusa, cancelar, concluir, documento e observação;
+- seções de dados gerais, serviços, peças, valores, previsão, documentos e histórico.
+
+### Interações simuladas
+
+As ações desta etapa alteram dados apenas durante a sessão do navegador:
+
+- movimentar veículo entre etapas;
+- retornar etapa com motivo obrigatório;
+- marcar retrabalho;
+- alterar previsão de entrega;
+- adicionar, encerrar e manter condições paralelas;
+- criar complemento temporário;
+- aprovar, aprovar parcialmente ou recusar complemento;
+- atualizar valor aprovado da OS e previsão quando um complemento é aprovado;
+- registrar histórico operacional compartilhado com a OS detalhada.
+
+### Dados fictícios e decisões assumidas
+
+- A data de referência da Etapa 4 é `12/06/2026`.
+- “Aguardando peça” e “Complemento pendente” são condições paralelas, nunca etapas principais.
+- A capacidade por etapa é apenas visual e configurável futuramente.
+- O usuário fictício selecionado controla a permissão simulada de movimentação.
+- O drag and drop foi implementado de forma conservadora: soltar um card não move imediatamente; apenas abre o modal de confirmação.
+- A OS 1042 permanece como principal registro de demonstração.
+- Foram adicionadas OSs e complementos fictícios suficientes para cobrir os cenários obrigatórios da etapa.
+
+### Limitações conhecidas
+
+- Não há backend, banco de dados, autenticação real, persistência definitiva ou integração externa.
+- As alterações somem ao recarregar a página.
+- Compras, financeiro completo, relatórios finais, importação real e notas fiscais continuam fora do escopo desta etapa.
+- A validação visual responsiva deve ser feita no navegador em 1440 px, 1024 px, 768 px e 390 px.
+
+### Como abrir e testar a Etapa 4
+
+Abra diretamente por `file://` ou rode um servidor local:
+
+```bash
+cd melo-reparos-prototipo
+python3 -m http.server 8080
+```
+
+Rotas principais:
+
+- `http://localhost:8080/paginas/producao.html`
+- `http://localhost:8080/paginas/complementos.html`
+- `http://localhost:8080/paginas/complemento-detalhes.html?id=comp-003`
+- `http://localhost:8080/paginas/ordem-servico-detalhes.html?id=os-1042`
+
+Sugestão curta de mensagem de commit:
+
+```text
+feat: implementa produção e complementos no protótipo
+```

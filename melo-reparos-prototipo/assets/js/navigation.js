@@ -37,6 +37,7 @@ window.MeloNavigation = (() => {
       }
     }
     if (file === 'ordem-servico-detalhes.html') return { label: 'Detalhes da OS', module: 'Operação' };
+    if (file === 'complemento-detalhes.html') return { label: 'Detalhes do Complemento', module: 'Operação' };
     if (file === 'componentes.html') return { label: 'Componentes', module: 'Validação visual' };
     return { label: 'Protótipo', module: 'Melo Reparos' };
   }
