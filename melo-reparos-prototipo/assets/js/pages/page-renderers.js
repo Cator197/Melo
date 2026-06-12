@@ -13,10 +13,14 @@ window.MeloPages = (() => {
     'complementos.html': { title: 'Complementos', description: 'Fluxo simulado de solicitações, aprovações e impactos na OS.', module: 'Operação', icon: '+' },
     'complemento-detalhes.html': { title: 'Detalhes do Complemento', description: 'Detalhamento do complemento e aprovação simulada.', module: 'Operação', icon: '+' },
     'compras.html': { title: 'Compras', description: 'Fundação para pedidos, fornecedores e itens necessários à produção.', module: 'Suprimentos', icon: '◫' },
+    'financeiro.html': { title: 'Financeiro', description: 'Visão geral financeira com fluxo, alertas e resultado.', module: 'Financeiro', icon: '$' },
     'financeiro-visao-geral.html': { title: 'Visão geral', description: 'Resumo financeiro inicial com indicadores fictícios e navegação para as rotinas.', module: 'Financeiro', icon: '$' },
     'contas-receber.html': { title: 'Contas a receber', description: 'Lista inicial de recebíveis relacionados às ordens de serviço.', module: 'Financeiro', icon: '↙' },
     'contas-pagar.html': { title: 'Contas a pagar', description: 'Lista inicial de obrigações e compras vinculadas a fornecedores.', module: 'Financeiro', icon: '↗' },
     'fluxo-caixa.html': { title: 'Fluxo de caixa', description: 'Estrutura inicial para entradas, saídas e saldo projetado.', module: 'Financeiro', icon: '≋' },
+    'regras-pagamento.html': { title: 'Regras de pagamento', description: 'Configuração visual de prazos, parcelas e taxas.', module: 'Financeiro', icon: '◷' },
+    'rentabilidade.html': { title: 'Rentabilidade por OS', description: 'Lucro estimado e realizado por ordem de serviço.', module: 'Financeiro', icon: '◰' },
+    'categorias-financeiras.html': { title: 'Categorias financeiras', description: 'Categorias fictícias de receitas e despesas.', module: 'Financeiro', icon: '☷' },
     'relatorios.html': { title: 'Relatórios', description: 'Área reservada para relatórios gerenciais e indicadores consolidados.', module: 'Gestão', icon: '◰' },
     'clientes.html': { title: 'Clientes', description: 'Cadastro inicial de clientes usado pelos dados fictícios.', module: 'Cadastros', icon: '☻' },
     'veiculos.html': { title: 'Veículos', description: 'Cadastro inicial de veículos com vínculo a clientes e ordens de serviço.', module: 'Cadastros', icon: '▰' },
@@ -36,6 +40,7 @@ window.MeloPages = (() => {
     if (file === 'itens-pendentes.html' && window.MeloPurchasesModule) return window.MeloPurchasesModule.renderPending();
     if (file === 'complementos.html' && window.MeloComplementsModule) return window.MeloComplementsModule.renderList();
     if (file === 'complemento-detalhes.html' && window.MeloComplementsModule) return window.MeloComplementsModule.renderDetail();
+    if (window.MeloFinanceModule && window.MeloFinanceModule.handles(file)) return window.MeloFinanceModule.render(file);
     if (file === 'inicio.html') return renderInicio();
     if (file === 'agenda.html') return renderAgenda();
     if (file === 'componentes.html') return renderComponentes();
@@ -316,8 +321,8 @@ window.MeloPages = (() => {
 
   const sum = (items) => items.reduce((total, item) => total + item.valor, 0);
   const unique = (items) => [...new Set(items)];
-  const eventTypes = () => ['entrada', 'entrega', 'peca', 'pagamento', 'recebimento', 'complemento', 'interno'];
-  const eventTypeLabel = (type) => ({ entrada: 'Entrada de veículo', entrega: 'Entrega', peca: 'Previsão de peça', pagamento: 'Pagamento', recebimento: 'Recebimento', complemento: 'Complemento', interno: 'Compromisso interno' }[type] || type);
+  const eventTypes = () => ['entrada', 'entrega', 'peca', 'pagamento', 'recebimento', 'parcela', 'fechamento-financeiro', 'complemento', 'interno'];
+  const eventTypeLabel = (type) => ({ entrada: 'Entrada de veículo', entrega: 'Entrega', peca: 'Previsão de peça', pagamento: 'Pagamento', recebimento: 'Recebimento', complemento: 'Complemento', interno: 'Compromisso interno', parcela: 'Parcela', 'fechamento-financeiro': 'Fechamento financeiro' }[type] || type);
   const parseDate = (date) => new Date(`${date}T00:00:00`);
   const addDays = (date, days) => new Date(parseDate(date).getTime() + (days * dayMs)).toISOString().slice(0, 10);
   const daysBetween = (start, end) => Math.floor((parseDate(end) - parseDate(start)) / dayMs);

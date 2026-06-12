@@ -8,9 +8,12 @@ window.MeloNavigation = (() => {
     { label: 'Compras', icon: '◫', href: 'compras.html', module: 'Suprimentos' },
     { label: 'Financeiro', icon: '$', children: [
       { label: 'Visão geral', href: 'financeiro-visao-geral.html', module: 'Financeiro' },
+      { label: 'Regras de pagamento', href: 'regras-pagamento.html', module: 'Financeiro' },
       { label: 'Contas a receber', href: 'contas-receber.html', module: 'Financeiro' },
       { label: 'Contas a pagar', href: 'contas-pagar.html', module: 'Financeiro' },
-      { label: 'Fluxo de caixa', href: 'fluxo-caixa.html', module: 'Financeiro' }
+      { label: 'Fluxo de caixa', href: 'fluxo-caixa.html', module: 'Financeiro' },
+      { label: 'Rentabilidade', href: 'rentabilidade.html', module: 'Financeiro' },
+      { label: 'Categorias financeiras', href: 'categorias-financeiras.html', module: 'Financeiro' }
     ]},
     { label: 'Relatórios', icon: '◰', href: 'relatorios.html', module: 'Gestão' },
     { label: 'Cadastros', icon: '☷', children: [
@@ -36,6 +39,7 @@ window.MeloNavigation = (() => {
         if (child) return { ...child, parent: item.label };
       }
     }
+    if (file === 'financeiro.html') return { label: 'Financeiro', module: 'Financeiro' };
     if (file === 'ordem-servico-detalhes.html') return { label: 'Detalhes da OS', module: 'Operação' };
     if (file === 'compra-detalhes.html') return { label: 'Detalhes da Compra', module: 'Suprimentos' };
     if (file === 'itens-pendentes.html') return { label: 'Itens Pendentes', module: 'Suprimentos' };
