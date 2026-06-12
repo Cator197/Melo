@@ -34,3 +34,5 @@
   .avatar { width: 36px; height: 36px; }
   .hero, .card { padding: 16px; }
 }
+@media (max-width: 768px){.report-toolbar{display:block}.period-grid,.filters-card,.form-grid,.settings-grid{grid-template-columns:1fr}.chart-row{grid-template-columns:1fr}.global-results{left:1rem;top:112px}.notifications-panel{right:1rem;top:112px}.detail-list{grid-template-columns:1fr}.table-wrap{overflow-x:auto}.report-tabs{padding-bottom:.35rem}.action-row{margin-top:.75rem}.modal-lg{max-width:calc(100vw - 1.5rem)}}
+@media (max-width: 390px){.btn{width:100%;justify-content:center}.global-search input{width:140px}.chart-row strong{font-size:.85rem}}

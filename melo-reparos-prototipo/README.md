@@ -1,36 +1,40 @@
-# Melo Reparos — Protótipo
+# Melo Reparos — Protótipo navegável
 
-Protótipo visual, técnico e navegável do futuro sistema administrativo da Melo Reparos, atualizado até a **Etapa 6 — Financeiro, Fluxo de Caixa e Rentabilidade**.
+Protótipo visual, técnico e navegável do futuro sistema administrativo da **Melo Reparos**, atualizado até a **Etapa 7 — Relatórios, Cadastros, Importações, Configurações e Revisão Final**.
 
-A Etapa 6 foi aplicada diretamente no projeto existente, preservando a identidade visual, navegação, componentes e dados fictícios das etapas anteriores. O protótipo continua sem backend, sem banco de dados e sem integrações externas: todas as operações financeiras são simuladas com HTML, CSS e JavaScript puro, usando dados centralizados em `assets/js/mock-data.js` e estado temporário em memória durante a sessão.
+A Etapa 7 foi aplicada diretamente no projeto existente, preservando a identidade visual aprovada: azul principal, amarelo de destaque, fundo claro, cards brancos, fontes Barlow e Barlow Condensed, placas em destaque e aparência operacional/profissional. O protótipo continua sem backend, banco de dados, autenticação real, importação real, integrações externas, emissão fiscal, integração bancária ou armazenamento real de arquivos.
 
-## Como abrir e testar
+Todas as operações são simuladas com **HTML, CSS e JavaScript puro**, usando dados fictícios centralizados em `assets/js/mock-data.js` e estado temporário em memória durante a sessão.
 
-Abra o arquivo `melo-reparos-prototipo/index.html` diretamente no navegador. Ele redireciona para `paginas/inicio.html` e o protótipo também funciona via `file://`, sem servidor obrigatório.
+## Como abrir
 
-Opcionalmente, para validar em um servidor local simples:
+Abra o arquivo abaixo diretamente no navegador:
+
+```text
+melo-reparos-prototipo/index.html
+```
+
+Ele redireciona para `paginas/inicio.html` e também funciona via `file://`, sem servidor obrigatório.
+
+Opcionalmente, para validar em servidor local simples:
 
 ```bash
 cd melo-reparos-prototipo
 python3 -m http.server 8080
 ```
 
-Depois acesse, por exemplo:
+Depois acesse `http://localhost:8080/paginas/inicio.html`.
 
-- `http://localhost:8080/paginas/inicio.html`
-- `http://localhost:8080/paginas/financeiro-visao-geral.html`
-- `http://localhost:8080/paginas/financeiro.html`
-- `http://localhost:8080/paginas/contas-receber.html`
-- `http://localhost:8080/paginas/contas-pagar.html`
-- `http://localhost:8080/paginas/fluxo-caixa.html`
-- `http://localhost:8080/paginas/regras-pagamento.html`
-- `http://localhost:8080/paginas/rentabilidade.html`
-- `http://localhost:8080/paginas/categorias-financeiras.html`
-- `http://localhost:8080/paginas/ordem-servico-detalhes.html?id=os-1042`
-- `http://localhost:8080/paginas/agenda.html`
-- `http://localhost:8080/paginas/compras.html`
+## Tecnologias
 
-## Estrutura principal
+- HTML5 sem framework.
+- CSS modular em `assets/css/`.
+- JavaScript puro em `assets/js/`.
+- Dados fictícios centralizados em `assets/js/mock-data.js`.
+- Gráficos simples em CSS/HTML, sem biblioteca externa pesada.
+- Impressão via CSS `@media print` e `window.print()`.
+
+## Estrutura de pastas
 
 ```text
 melo-reparos-prototipo/
@@ -42,190 +46,275 @@ melo-reparos-prototipo/
 │   ├── producao.html
 │   ├── agenda.html
 │   ├── complementos.html
+│   ├── entregas.html
 │   ├── compras.html
+│   ├── itens-pendentes.html
 │   ├── compra-detalhes.html
-│   ├── financeiro.html
 │   ├── financeiro-visao-geral.html
 │   ├── contas-receber.html
 │   ├── contas-pagar.html
 │   ├── fluxo-caixa.html
-│   ├── regras-pagamento.html
 │   ├── rentabilidade.html
 │   ├── categorias-financeiras.html
-│   └── demais páginas de cadastros, relatórios e configurações
-├── assets/
-│   ├── css/
-│   │   ├── variables.css
-│   │   ├── base.css
-│   │   ├── layout.css
-│   │   ├── components.css
-│   │   └── responsive.css
-│   └── js/
-│       ├── init.js
-│       ├── navigation.js
-│       ├── components.js
-│       ├── mock-data.js
-│       └── pages/
-│           ├── page-renderers.js
-│           ├── os-module.js
-│           ├── purchases-module.js
-│           ├── complements-module.js
-│           ├── production-module.js
-│           └── finance-module.js
+│   ├── regras-pagamento.html
+│   ├── relatorios.html
+│   ├── clientes.html
+│   ├── cliente-detalhes.html
+│   ├── veiculos.html
+│   ├── veiculo-detalhes.html
+│   ├── fornecedores.html
+│   ├── fornecedor-detalhes.html
+│   ├── usuarios.html
+│   ├── importacoes.html
+│   ├── configuracoes.html
+│   ├── configuracoes-etapas.html
+│   └── auditoria.html
+└── assets/
+    ├── css/
+    │   ├── variables.css
+    │   ├── base.css
+    │   ├── layout.css
+    │   ├── components.css
+    │   └── responsive.css
+    └── js/
+        ├── init.js
+        ├── navigation.js
+        ├── components.js
+        ├── mock-data.js
+        └── pages/
+            ├── page-renderers.js
+            ├── os-module.js
+            ├── production-core.js
+            ├── production-module.js
+            ├── complements-module.js
+            ├── purchases-module.js
+            ├── finance-module.js
+            └── stage7-module.js
 ```
 
-## Arquivos criados na Etapa 6
+## Módulos e páginas
 
-- `paginas/financeiro.html`
-- `paginas/regras-pagamento.html`
-- `paginas/rentabilidade.html`
-- `paginas/categorias-financeiras.html`
-- `assets/js/pages/finance-module.js`
+### Início
 
-## Arquivos modificados na Etapa 6
+Painel operacional com indicadores de veículos na oficina, fila, entregas, atrasos, compras, complementos, recebimentos, pagamentos, alertas prioritários e resumo semanal.
 
-- `paginas/*.html` — inclusão do script do módulo financeiro nas páginas do protótipo.
-- `assets/js/mock-data.js` — ampliação dos dados fictícios financeiros centralizados.
-- `assets/js/navigation.js` — inclusão das novas rotas do financeiro na navegação lateral.
-- `assets/js/pages/page-renderers.js` — delegação das páginas financeiras para o novo módulo e inclusão dos novos tipos de eventos de agenda.
-- `assets/js/pages/os-module.js` — integração da aba Financeiro da OS com o novo módulo financeiro.
-- `assets/css/components.css` — estilos responsivos específicos para cards, fluxo de caixa, alertas, timeline e modais financeiros.
-- `README.md` — documentação atualizada da entrega.
+### Operação
 
-## Interações simuladas da Etapa 6
+- **Ordens de Serviço:** lista, filtros, ações e detalhes de OS.
+- **Produção:** kanban/tabelas de produção, etapas, condições paralelas e alertas.
+- **Agenda:** agenda por dia, semana e mês.
+- **Complementos:** fluxo simulado de solicitações, aprovações e impactos.
+- **Entregas:** entregas hoje, atrasadas, futuras, finalizadas, pendências, situação financeira, documentos e checklist.
 
-### Financeiro — Visão Geral
+### Compras
 
-A visão geral mostra:
+- **Pedidos:** compras, status de recebimento, itens, OSs atendidas e vínculo financeiro.
+- **Itens pendentes:** itens em aberto para produção.
+- **Fornecedores:** cadastro e detalhes de fornecedores, pedidos, contas a pagar e ocorrências.
 
-- cabeçalho do Financeiro com breadcrumb textual, período selecionado, botões de nova conta a receber, nova conta a pagar, registrar baixa e exportar;
-- filtros de período com hoje, esta semana, este mês, mês anterior, próximo mês e período personalizado;
-- indicadores clicáveis para aberto, previsto, realizado, vencido e resultado;
-- alertas financeiros prioritários, incluindo conta vencida, compra sem conta, OS entregue com saldo, baixa parcial, divergência entre compra e conta a pagar e complemento aprovado sem lançamento;
-- resumo do período separado em receitas, despesas e resultado;
-- próximos vencimentos, vencidos a receber e vencidos a pagar.
+### Financeiro
 
-### Contas a Receber
+- Visão geral.
+- Contas a receber.
+- Contas a pagar.
+- Fluxo de caixa.
+- Rentabilidade.
+- Categorias financeiras.
+- Regras de pagamento.
 
-A página possui:
+### Relatórios
 
-- indicadores de contas em aberto, parcialmente recebidas, recebidas, vencidas, a vencer, valor bruto, taxas e valor líquido previsto;
-- filtros por pesquisa livre, status, forma de pagamento, faixa de valor e responsável;
-- três modos de visualização: contas, parcelas e pagadores;
-- modal simulado para nova conta, geração de parcelas, cálculo de taxa de cartão, revisão de fórmula, confirmação de baixa e estorno.
+A página `relatorios.html` reúne:
 
-### Contas a Pagar
+1. Visão geral.
+2. Produção.
+3. Prazo e eficiência.
+4. Compras.
+5. Financeiro.
+6. Rentabilidade.
+7. Orçamentos e aprovações.
+8. Veículos e clientes.
 
-A página possui:
+Inclui seletor de período, datas inicial/final, aplicar, limpar, exportar PDF simulado, exportar Excel simulado e imprimir.
 
-- indicadores de em aberto, parcialmente pagas, pagas, vencidas, a vencer, total previsto, total pago e saldo pendente;
-- filtros equivalentes para fornecedor, compra, OS, categoria, status, vencimento, período, valor e responsável;
-- quatro modos de visualização: contas, parcelas, fornecedores e categorias;
-- modal simulado para criação de conta vinculada à compra, pagamento parcial, pagamento total, juros, ajuste e estorno.
+### Cadastros
 
-### Regras de Pagamento e Taxas de Cartão
+- Clientes.
+- Detalhes do cliente.
+- Veículos.
+- Detalhes do veículo.
+- Fornecedores.
+- Detalhes do fornecedor.
+- Usuários e permissões simuladas.
 
-Foram criadas regras fictícias para:
+### Importações
 
-- à vista;
-- 7 dias;
-- 15 dias;
-- 30 dias;
-- parcelado mensal;
-- seguradora após entrega;
-- cliente corporativo no último dia do mês seguinte.
+Fluxos visuais simulados para:
 
-Também há tabela de taxas de cartão para débito, crédito à vista, crédito em 2x, 3x, 4x e 5x ou mais. A fórmula exibida recalcula valor bruto, taxa, tarifa fixa, valor líquido e parcelas antes da confirmação.
+- Cilia.
+- Soma.
+- Histórico do Excel.
 
-### Fluxo de Caixa
+Nenhum arquivo é lido de verdade. As etapas exibidas são apenas prévia funcional para validação.
 
-O fluxo de caixa apresenta:
+### Configurações
 
-- controles de mês anterior, hoje, próximo mês, seletor de mês, filtros, zoom e alternância de previsto/realizado;
-- indicadores de entradas previstas, entradas realizadas, saídas previstas, saídas realizadas, saldo previsto, saldo realizado, vencidos a receber e vencidos a pagar;
-- linha do tempo mensal com entradas acima, saídas abaixo, previsto em estilo diferenciado, realizado em destaque, dia atual e saldo negativo;
-- listas auxiliares de entradas previstas até hoje não recebidas, saídas previstas até hoje não pagas e próximos 15 dias.
+- Configurações gerais: empresa, sistema, produção, financeiro, documentos, notificações e segurança simulada.
+- Configurações de etapas e condições paralelas.
+- Permissões simuladas via página de usuários.
 
-### Rentabilidade por OS
+### Auditoria
 
-A tela de rentabilidade mostra:
+Tabela de auditoria visual com registros fictícios de login, criação, edição, movimentação, aprovação, cancelamento, baixa, fechamento, reabertura, importação, configuração e alteração de permissão.
 
-- receita total;
-- custo total;
-- lucro estimado;
-- lucro realizado;
-- margem média;
-- OS com prejuízo;
-- OS sem fechamento;
-- tabela por OS com receita aprovada, receita líquida, custo estimado, custo real, lucro estimado, lucro realizado, margem, status financeiro, pendências e ações.
+## Dados fictícios
 
-A OS 1042 permanece como registro principal de demonstração, com seguradora como pagador principal, franquia do cliente, serviço adicional, múltiplas contas a receber, compra vinculada, conta a pagar, taxa de cartão, recebimento parcial, lucro estimado, lucro realizado provisório e pendências financeiras.
+Os dados principais estão em `assets/js/mock-data.js`, incluindo:
 
-### Fechamento e Reabertura Financeira da OS
+- clientes;
+- veículos;
+- etapas de produção;
+- condições paralelas;
+- ordens de serviço;
+- serviços e peças por OS;
+- complementos;
+- fornecedores;
+- compras;
+- contas a receber;
+- contas a pagar;
+- dados financeiros por OS;
+- documentos, fotos, observações, movimentações e histórico;
+- fila de veículos;
+- limites por etapa;
+- eventos da agenda;
+- usuários.
 
-A aba Financeiro da OS foi integrada ao módulo financeiro. Ela exibe:
+## Registro principal — OS 1042
 
-- receitas por pagador, conta e parcela;
-- custos por compras, materiais, terceiros, taxas e outros;
-- receita aprovada, receita líquida prevista, receita recebida, custo estimado, custo realizado, lucro estimado, lucro realizado provisório e margem;
-- pendências que impedem fechamento silencioso;
-- ações simuladas de fechar financeiramente e reabrir fechamento;
-- histórico financeiro em linha do tempo.
+A **OS 1042** permanece como registro principal de demonstração:
 
-Se existirem pendências, o fechamento é bloqueado no protótipo e informa que somente poderia ocorrer com ressalva, justificativa, usuário, data e confirmação.
+- Cliente: Roberto Almeida.
+- Veículo: Chevrolet Onix, placa ABC1D23.
+- Origem: Cilia.
+- Orçamento: ORC-CIL-78942.
+- ID externo: CILIA-AX9-1042.
+- Seguradora: Porto Seguro.
+- Status: Em produção.
+- Etapa: Funilaria.
+- Condições paralelas: aguardando peça e complemento pendente.
+- Valor aprovado: R$ 12.780,00.
 
-### Integrações
+A OS 1042 é usada em produção, relatórios, rentabilidade, compras, importações, auditoria, notificações, busca global e entregas.
 
-- **Compras:** contas a pagar vinculadas a compras aparecem no Financeiro; divergências e compras sem conta geram alertas; pagamentos atualizam a visão financeira simulada.
-- **Ordens de Serviço:** a aba Financeiro da OS consome as mesmas contas, parcelas, baixas e rentabilidade.
-- **Início:** os dados de contas a receber, contas a pagar, vencimentos e saldo continuam usando as coleções centralizadas.
-- **Agenda:** foram adicionados eventos financeiros de recebimento, pagamento, parcela e fechamento financeiro.
+## Usuários fictícios
 
-## Dados fictícios financeiros incluídos
+### Caio Dicieri
 
-O arquivo `assets/js/mock-data.js` contém, para a Etapa 6:
+- Perfil: Administrador.
+- Acesso completo.
+- Pode visualizar lucro, custos, relatórios, configurações e permissões.
 
-- 18 contas a receber;
-- 18 contas a pagar;
-- 45 parcelas financeiras;
-- 12 baixas financeiras;
-- 7 regras de pagamento;
-- 6 configurações de taxa de cartão;
-- 16 categorias financeiras;
-- alertas financeiros prioritários;
-- histórico financeiro;
-- rentabilidade por OS;
-- eventos financeiros na agenda.
+### Usuário Operacional
 
-Os dados incluem os cenários obrigatórios: conta vencida, parcial, recebida integralmente, cancelada, estornada, múltiplos pagadores por OS, taxa de cartão, conta a pagar de compra, pagamento parcial, pagamento vencido, lançamento sem OS/compra, pagamento com juros, recebimento com desconto, OS com lucro positivo, OS com lucro realizado menor que o estimado, OS com prejuízo, OS entregue com saldo pendente e OS financeiramente fechada.
+- Acesso a Produção.
+- Pode movimentar etapas, inserir observações, consultar peças e trabalhar com fotos.
+- Não visualiza lucro.
+- Ações de custos, baixa e configurações ficam desabilitadas visualmente.
+
+### Usuário Administrativo
+
+- Acesso a OS, Compras, Financeiro, documentos e relatórios permitidos.
+- Configurações críticas ficam restritas visualmente.
+
+## Interações simuladas
+
+- Criar/editar/inativar/reativar registros.
+- Adicionar cliente, veículo e fornecedor por modal.
+- Abrir detalhes por ID.
+- Trocar usuário fictício e testar permissões.
+- Aplicar filtros de relatórios.
+- Exportar PDF e Excel com toast simulado.
+- Imprimir com CSS próprio.
+- Simular importação Cilia, Soma e Excel.
+- Marcar notificações como lidas.
+- Usar busca global por OS, placa, veículo, cliente, orçamento, complemento, pedido, fornecedor e financeiro.
+- Confirmar ações críticas com confirmação visual.
+
+## Como testar a Etapa 7
+
+1. Abrir `paginas/inicio.html`.
+2. Navegar por todo o menu lateral.
+3. Abrir `relatorios.html`.
+4. Alterar o período e clicar em **Aplicar**.
+5. Trocar abas internas dos relatórios.
+6. Clicar em exportar PDF, exportar Excel e imprimir.
+7. Usar a busca global com termos como `1042`, `ABC1D23`, `Roberto`, `Cilia`, `COM` e `REC`.
+8. Abrir notificações, filtrar/ler notificações e abrir registros.
+9. Abrir Clientes, Veículos e Fornecedores e testar modais.
+10. Abrir detalhes por ID.
+11. Abrir Usuários e trocar o perfil fictício.
+12. Abrir Configurações e Etapas.
+13. Abrir Importações e simular Cilia, Soma e Excel.
+14. Abrir Auditoria.
+15. Abrir Entregas e revisar checklist.
+16. Revisar responsividade em 1440 px, 1024 px, 768 px e 390 px.
+17. Revisar console do navegador.
+
+## Arquivos criados na Etapa 7
+
+- `paginas/cliente-detalhes.html`
+- `paginas/veiculo-detalhes.html`
+- `paginas/fornecedor-detalhes.html`
+- `paginas/configuracoes-etapas.html`
+- `paginas/auditoria.html`
+- `paginas/entregas.html`
+- `assets/js/pages/stage7-module.js`
+
+## Arquivos modificados na Etapa 7
+
+- `paginas/*.html` — inclusão dos módulos JavaScript necessários em todas as páginas.
+- `assets/js/navigation.js` — menu final agrupado por Início, Operação, Compras, Financeiro, Relatórios, Cadastros, Importações, Configurações e Auditoria.
+- `assets/js/pages/page-renderers.js` — delegação das páginas da Etapa 7 ao novo módulo.
+- `assets/js/components.js` — busca global e painel de notificações simuladas.
+- `assets/css/components.css` — estilos para relatórios, gráficos, formulários, importações, permissões, auditoria e impressão.
+- `assets/css/responsive.css` — ajustes responsivos para relatórios, filtros, tabelas, gráficos e modais.
+- `README.md` — documentação final da Etapa 7.
 
 ## Decisões assumidas
 
-- O Financeiro pertence somente à Melo Reparos; não há múltiplas contas bancárias.
-- O saldo inicial do resumo é fictício e não representa conta bancária real.
-- Lucro realizado é exibido como provisório quando há receitas pendentes, contas vencidas, compras não confirmadas, custos provisórios, complementos aguardando aprovação ou lançamentos provisórios.
-- Cancelamentos, estornos, renegociações e ajustes permanecem no histórico e não apagam eventos anteriores.
-- Compras não geram conta a pagar automaticamente sem confirmação; alertas indicam compras pendentes de lançamento.
-- Não foram implementadas conciliação bancária real, integração bancária, boleto, nota fiscal, contabilidade, impostos automáticos, backend, banco de dados ou autenticação real.
+- Relatórios usam a base central existente, mas alguns comparativos e tendências são fictícios para validação visual.
+- Importações Cilia, Soma e Excel são fluxos visuais, sem leitura real de arquivo.
+- Permissões são simuladas por seletor temporário, sem login real.
+- Configurações alteram visualmente o protótipo quando seguro, mas não persistem.
+- Categorias e regras de pagamento são listas funcionais simuladas.
+- A impressão usa CSS para ocultar menu, botões e elementos operacionais.
+- Nenhuma página principal permanece vazia ou apenas em construção.
 
-## Correções e preservações de etapas anteriores
+## Limitações
 
-- O projeto não foi recriado e nenhuma pasta paralela foi criada.
-- A navegação, layout, identidade visual, componentes base e dados fictícios anteriores foram preservados.
-- A integração com Compras da Etapa 5 foi reaproveitada para contas a pagar e alertas financeiros.
-- A aba Financeiro da OS foi substituída por uma visão mais completa sem remover as abas e ações existentes.
-- A Agenda passou a reconhecer eventos financeiros sem remover eventos operacionais existentes.
+- Não há backend, banco de dados ou API.
+- Não há autenticação real.
+- Não há persistência definitiva.
+- Não há importação real de arquivos.
+- Não há integração real com Cilia ou Soma.
+- Não há emissão de nota fiscal.
+- Não há integração bancária ou conciliação real.
+- Não há armazenamento real de documentos, fotos ou anexos.
+- Todas as ações retornam ao estado inicial ao recarregar a página.
 
-## Limitações conhecidas
+## Próximos passos para o sistema real
 
-- Todas as ações são simulações em memória; recarregar a página volta aos dados fictícios iniciais.
-- Os filtros demonstram o fluxo de interação, mas não persistem em backend.
-- Exportação, comprovantes e anexos são representados por botões, textos e toasts simulados.
-- A validação visual responsiva deve ser conferida no navegador do avaliador em 1440 px, 1024 px, 768 px e 390 px.
-- Como não há backend, não há persistência definitiva nem controle de concorrência real.
+- Definir modelo de dados e banco relacional.
+- Implementar autenticação, perfis e permissões reais.
+- Criar APIs para OS, produção, compras, financeiro, cadastros e relatórios.
+- Implementar importadores reais de Cilia, Soma e Excel com validação transacional.
+- Implementar upload seguro de arquivos.
+- Criar trilha de auditoria persistente.
+- Definir regras fiscais, financeiras e contábeis definitivas.
+- Implementar testes automatizados de frontend e backend.
 
 ## Sugestão de mensagem de commit
 
 ```text
-feat: implementa financeiro, fluxo de caixa e rentabilidade
+feat: finaliza protótipo com relatórios cadastros e configurações
 ```
