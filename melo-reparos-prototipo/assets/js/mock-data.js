@@ -258,3 +258,172 @@ window.MeloMockData = {
   const os1042 = d.financeiroOS['os-1042'];
   if (os1042) os1042.custos.pecas = d.pecasOS.filter((p) => p.osId === 'os-1042' && !String(p.situacao).includes('cancelado')).reduce((s, p) => s + (p.valorRateado || 0), 0);
 })();
+
+/* Etapa 6 — Financeiro, fluxo de caixa e rentabilidade */
+(() => {
+  const d = window.MeloMockData;
+  const rec = (id, osId, pagador, tipoPagador, descricao, status, bruto, taxa, liquido, vencimento, formaPagamento='boleto', parcelas=1, origem='OS', extra={}) => ({ id, osId, pagador, tipoPagador, descricao, status, valorBruto: bruto, taxa, valorLiquido: liquido, valor: liquido, vencimento, dataPrevista: vencimento, emissao: extra.emissao || '2026-06-02', formaPagamento, parcelas, origem, responsavel: extra.responsavel || 'Caio Dicieri', sinistro: extra.sinistro || '', regraPagamentoId: extra.regraPagamentoId || 'REG-30', ultimaMovimentacao: extra.ultimaMovimentacao || vencimento, observacoes: extra.observacoes || '' });
+  const pag = (id, fornecedorId, compraId, osId, categoria, descricao, status, valor, vencimento, formaPagamento='boleto', parcelas=1, extra={}) => ({ id, fornecedorId, compraId, osId, categoria, descricao, status, valor, valorFinal: valor, vencimento, dataPrevista: vencimento, emissao: extra.emissao || '2026-06-02', formaPagamento, parcelas, documento: extra.documento || '', origem: extra.origem || (compraId ? 'compra' : 'lançamento manual'), responsavel: extra.responsavel || 'Marina Lopes', observacoes: extra.observacoes || '' });
+
+  d.regrasPagamento = [
+    { id:'REG-AV', nome:'À vista', tipo:'fixo', prazo:0, diaFixo:null, parcelas:1, intervalo:0, formaPagamento:'pix', taxaPercentual:0, responsavel:'Caio Dicieri', ativa:true },
+    { id:'REG-07', nome:'7 dias', tipo:'prazo', prazo:7, diaFixo:null, parcelas:1, intervalo:0, formaPagamento:'boleto', taxaPercentual:0, responsavel:'Marina Lopes', ativa:true },
+    { id:'REG-15', nome:'15 dias', tipo:'prazo', prazo:15, diaFixo:null, parcelas:1, intervalo:0, formaPagamento:'transferência', taxaPercentual:0, responsavel:'Caio Dicieri', ativa:true },
+    { id:'REG-30', nome:'30 dias', tipo:'prazo', prazo:30, diaFixo:null, parcelas:1, intervalo:0, formaPagamento:'boleto', taxaPercentual:0, responsavel:'Paula Nunes', ativa:true },
+    { id:'REG-PAR', nome:'Parcelado mensal', tipo:'parcelado', prazo:30, diaFixo:null, parcelas:3, intervalo:30, formaPagamento:'cartão de crédito', taxaPercentual:3.49, responsavel:'Caio Dicieri', ativa:true },
+    { id:'REG-SEG', nome:'Seguradora após entrega', tipo:'condicional', prazo:10, diaFixo:null, parcelas:1, intervalo:0, formaPagamento:'transferência', taxaPercentual:0, responsavel:'Marina Lopes', ativa:true },
+    { id:'REG-CORP', nome:'Corporativo último dia mês seguinte', tipo:'dia fixo', prazo:0, diaFixo:31, parcelas:1, intervalo:0, formaPagamento:'boleto', taxaPercentual:0, responsavel:'Caio Dicieri', ativa:false }
+  ];
+  d.taxasCartao = [
+    { id:'TAX-DEB', nome:'Débito', percentual:1.59, tarifaFixa:0, prazoRecebimento:1, ativa:true, observacao:'Recebimento D+1 fictício.' },
+    { id:'TAX-C1', nome:'Crédito à vista', percentual:2.89, tarifaFixa:0, prazoRecebimento:30, ativa:true, observacao:'Crédito 1 parcela.' },
+    { id:'TAX-C2', nome:'Crédito em 2x', percentual:3.19, tarifaFixa:0, prazoRecebimento:30, ativa:true, observacao:'Taxa total simulada.' },
+    { id:'TAX-C3', nome:'Crédito em 3x', percentual:3.49, tarifaFixa:0, prazoRecebimento:30, ativa:true, observacao:'Exemplo usado no cálculo.' },
+    { id:'TAX-C4', nome:'Crédito em 4x', percentual:3.89, tarifaFixa:0.49, prazoRecebimento:35, ativa:true, observacao:'Inclui tarifa fixa.' },
+    { id:'TAX-C5', nome:'Crédito em 5x ou mais', percentual:4.59, tarifaFixa:0.79, prazoRecebimento:45, ativa:true, observacao:'Parcelamentos longos.' }
+  ];
+  d.categoriasFinanceiras = [
+    { id:'CAT-REC-MO', nome:'mão de obra', tipo:'Receita', ativa:true, centroCusto:'Produção', descricao:'Receitas de mão de obra.' },
+    { id:'CAT-REC-PEC', nome:'peças', tipo:'Receita', ativa:true, centroCusto:'Peças', descricao:'Repasse de peças.' },
+    { id:'CAT-REC-MAT', nome:'materiais', tipo:'Receita', ativa:true, centroCusto:'Materiais', descricao:'Materiais de pintura e consumo.' },
+    { id:'CAT-REC-ADD', nome:'serviço adicional', tipo:'Receita', ativa:true, centroCusto:'Comercial', descricao:'Serviços particulares adicionais.' },
+    { id:'CAT-REC-FRA', nome:'franquia', tipo:'Receita', ativa:true, centroCusto:'Atendimento', descricao:'Franquia paga pelo cliente.' },
+    { id:'CAT-REC-COM', nome:'complemento', tipo:'Receita', ativa:true, centroCusto:'Seguradora', descricao:'Complementos aprovados.' },
+    { id:'CAT-DES-PEC', nome:'peças', tipo:'Despesa', ativa:true, centroCusto:'Peças', descricao:'Compras de peças.' },
+    { id:'CAT-DES-MAT', nome:'materiais', tipo:'Despesa', ativa:true, centroCusto:'Materiais', descricao:'Tintas, abrasivos e insumos.' },
+    { id:'CAT-DES-TER', nome:'serviços terceirizados', tipo:'Despesa', ativa:true, centroCusto:'Terceiros', descricao:'Martelinho, guincho e terceiros.' },
+    { id:'CAT-DES-FOL', nome:'folha', tipo:'Despesa', ativa:true, centroCusto:'Administrativo', descricao:'Folha e encargos fictícios.' },
+    { id:'CAT-DES-ALU', nome:'aluguel', tipo:'Despesa', ativa:true, centroCusto:'Fixos', descricao:'Aluguel do imóvel.' },
+    { id:'CAT-DES-ENE', nome:'energia', tipo:'Despesa', ativa:true, centroCusto:'Fixos', descricao:'Energia elétrica.' },
+    { id:'CAT-DES-IMP', nome:'impostos', tipo:'Despesa', ativa:false, centroCusto:'Fiscal futuro', descricao:'Somente estrutura; sem cálculo fiscal.' },
+    { id:'CAT-DES-FER', nome:'ferramentas', tipo:'Despesa', ativa:true, centroCusto:'Oficina', descricao:'Ferramentas e manutenção.' },
+    { id:'CAT-DES-MKT', nome:'marketing', tipo:'Despesa', ativa:true, centroCusto:'Comercial', descricao:'Divulgação.' },
+    { id:'CAT-DES-OUT', nome:'outros', tipo:'Despesa', ativa:true, centroCusto:'Geral', descricao:'Demais despesas.' }
+  ];
+
+  d.contasReceber = [
+    rec('REC-1042-SEG','os-1042','Porto Seguro','seguradora','OS 1042 - indenização principal','parcialmente recebida',8500,296.65,8203.35,'2026-06-20','cartão de crédito',3,'OS',{sinistro:'SIN-2026-0042', regraPagamentoId:'REG-PAR'}),
+    rec('REC-1042-FRA','os-1042','Roberto Almeida','cliente','OS 1042 - franquia do cliente','vencida',1200,0,1200,'2026-06-10','pix',1,'OS',{sinistro:'SIN-2026-0042'}),
+    rec('REC-1042-ADD','os-1042','Roberto Almeida','cliente','OS 1042 - serviço adicional','prevista',300,0,300,'2026-06-14','pix',1,'OS',{sinistro:'SIN-2026-0042'}),
+    rec('REC-1001-AZUL','OS-1001','Azul Seguros','seguradora','OS 1001 - indenização seguradora','emitida',8200,0,8200,'2026-06-18','transferência',1,'OS',{sinistro:'SIN-2026-1001'}),
+    rec('REC-1002-TOKIO','OS-1002','Tokio Marine','seguradora','OS 1002 - pagamento integral','recebida',4100,0,4100,'2026-06-10','transferência',1,'OS'),
+    rec('REC-1003-CLI','OS-1003','Carla Moreno','cliente','OS 1003 - serviço particular','vencida',9600,0,9600,'2026-06-08','boleto',2,'OS'),
+    rec('REC-1004-CLI','OS-1004','Diego Martins','cliente','OS 1004 - franquia','prevista',980,0,980,'2026-06-22','pix',1,'OS'),
+    rec('REC-1005-LIB','OS-1005','Liberty Seguros','seguradora','OS 1005 - repasse seguradora','emitida',7450,0,7450,'2026-06-25','transferência',1,'OS'),
+    rec('REC-1006-SOM','OS-1006','Sompo Seguros','seguradora','OS 1006 - saldo entregue','prevista',3100,0,3100,'2026-06-12','boleto',1,'OS'),
+    rec('REC-1007-CLI','OS-1007','Gabriela Costa','cliente','OS 1007 - entregue com saldo','parcialmente recebida',1800,28.62,1771.38,'2026-06-11','débito',1,'OS'),
+    rec('REC-1008-HDI','OS-1008','HDI Seguros','seguradora','OS 1008 - indenização','rascunho',6800,0,6800,'2026-07-03','boleto',1,'OS'),
+    rec('REC-1009-CLI','OS-1009','Mariana Torres','cliente','OS 1009 - cartão em 4x','emitida',2400,93.85,2306.15,'2026-06-30','cartão de crédito',4,'OS'),
+    rec('REC-1010-TER','OS-1010','Transportadora Alfa','terceiro','OS 1010 - terceiro responsável','renegociada',5200,0,5200,'2026-07-10','boleto',2,'OS'),
+    rec('REC-MAN-001','','Empresa Parceira Beta','empresa parceira','Locação de cabine para parceiro','prevista',1500,0,1500,'2026-06-16','pix',1,'lançamento manual'),
+    rec('REC-AJUST-001','OS-1002','Tokio Marine','seguradora','Ajuste de complemento aprovado','estornada',700,0,700,'2026-06-09','transferência',1,'ajuste'),
+    rec('REC-CANC-001','OS-1005','Elisa Fontes','cliente','Conta cancelada por duplicidade','cancelada',450,0,450,'2026-06-15','pix',1,'ajuste'),
+    rec('REC-COMP-1042','os-1042','Porto Seguro','seguradora','Complemento aprovado sem lançamento definitivo','prevista',950,0,950,'2026-06-28','transferência',1,'complemento',{sinistro:'SIN-2026-0042'}),
+    rec('REC-OUT-001','','Cliente avulso','cliente','Serviço rápido sem OS vinculada','recebida',620,0,620,'2026-06-12','pix',1,'outro')
+  ];
+
+  d.contasPagar = [
+    pag('PAG-1042-1','FOR-001','compra-001','os-1042','peças','PED-2042 - peças Onix OS 1042','parcialmente paga',2380,'2026-06-18','boleto',2),
+    pag('PAG-1042-TER','FOR-003',null,'os-1042','serviços terceirizados','Serviço terceirizado OS 1042','prevista',760,'2026-06-21','pix',1,{origem:'serviço terceirizado'}),
+    pag('PAG-2051','FOR-004','compra-003','OS-1006','materiais','PED-2051 - presilhas e lixas','paga',237.96,'2026-06-12','pix',1),
+    pag('PAG-2055','FOR-001','compra-007','OS-1007','peças','PED-2055 - farol HB20','parcialmente paga',1310,'2026-06-18','boleto',2),
+    pag('PAG-2056','FOR-002','compra-008','OS-1003','materiais','PED-2056 - insumos pintura','confirmada',728,'2026-06-15','boleto',1),
+    pag('PAG-1001','FOR-001','compra-010','OS-1001','peças','Complemento capa retrovisor Civic','prevista',450,'2026-06-28','boleto',1),
+    pag('PAG-1002','FOR-002',null,'OS-1002','materiais','Tinta e verniz OS 1002','paga',890,'2026-06-09','transferência',1),
+    pag('PAG-1003','FOR-003',null,'OS-1003','serviços terceirizados','Martelinho lateral Compass','vencida',1500,'2026-06-07','boleto',1),
+    pag('PAG-1004','FOR-005',null,'OS-1004','serviços terceirizados','Guincho T-Cross','confirmada',360,'2026-06-17','pix',1),
+    pag('PAG-1005','FOR-004',null,'','ferramentas','Discos de lixa uso geral','confirmada',430,'2026-06-12','pix',1,{origem:'material'}),
+    pag('PAG-1006','FOR-005',null,'','outros','Coleta de peças sem OS','prevista',260,'2026-06-18','pix',1,{origem:'outro'}),
+    pag('PAG-FIX-001',null,null,'','aluguel','Aluguel da oficina junho','confirmada',6200,'2026-06-05','transferência',1,{origem:'custo fixo'}),
+    pag('PAG-FIX-002',null,null,'','energia','Energia elétrica prevista','vencida',1480,'2026-06-06','boleto',1,{origem:'custo fixo'}),
+    pag('PAG-FOL-001',null,null,'','folha','Adiantamento folha oficina','paga',7200,'2026-06-11','transferência',1,{origem:'folha'}),
+    pag('PAG-IMP-001',null,null,'','impostos','Guia fictícia sem cálculo fiscal','rascunho',980,'2026-06-30','boleto',1,{origem:'imposto'}),
+    pag('PAG-CANC-001','FOR-004','compra-009','','ferramentas','Compra cancelada compressor','cancelada',2390,'2026-06-25','boleto',1),
+    pag('PAG-EST-001','FOR-002',null,'OS-1008','materiais','Estorno de material devolvido','estornada',310,'2026-06-08','pix',1),
+    pag('PAG-MAN-001',null,null,'','marketing','Anúncio local Melo Reparos','confirmada',650,'2026-06-24','cartão de crédito',1,{origem:'lançamento manual'})
+  ];
+
+  d.parcelasFinanceiras = [];
+  const addParcelas = (account, tipo) => {
+    const total = tipo === 'receber' ? account.valorLiquido : account.valorFinal;
+    const bruto = tipo === 'receber' ? account.valorBruto : account.valorFinal;
+    const taxa = tipo === 'receber' ? account.taxa : 0;
+    for (let i=1;i<=account.parcelas;i++) {
+      const last = i === account.parcelas;
+      const share = (value) => last ? +(value - (Math.floor((value/account.parcelas)*100)/100) * (account.parcelas-1)).toFixed(2) : +(Math.floor((value/account.parcelas)*100)/100).toFixed(2);
+      d.parcelasFinanceiras.push({ id:`PAR-${account.id}-${i}`, contaId:account.id, tipo, numero:`${i}/${account.parcelas}`, valorBruto:share(bruto), taxa:share(taxa), valorLiquido:share(total), vencimento:i===1 ? account.vencimento : new Date(new Date(`${account.vencimento}T00:00:00`).getTime()+86400000*30*(i-1)).toISOString().slice(0,10), dataPrevista:account.vencimento, dataRealizacao:'', valorRealizado:0, status:account.status, responsavel:account.responsavel });
+    }
+  };
+  d.contasReceber.forEach((a)=>addParcelas(a,'receber'));
+  d.contasPagar.forEach((a)=>addParcelas(a,'pagar'));
+
+  d.baixasFinanceiras = [
+    { id:'BX-REC-1042-1', tipo:'recebimento', contaId:'REC-1042-SEG', parcelaId:'PAR-REC-1042-SEG-1', data:'2026-06-12', valorBruto:2800, taxaReal:97.72, valorLiquido:2702.28, formaPagamento:'cartão de crédito', status:'parcial', comprovante:'comp-rec-1042-1.pdf', observacao:'Recebimento parcial da seguradora.', responsavel:'Caio Dicieri' },
+    { id:'BX-REC-1002', tipo:'recebimento', contaId:'REC-1002-TOKIO', parcelaId:'PAR-REC-1002-TOKIO-1', data:'2026-06-10', valorBruto:4100, taxaReal:0, valorLiquido:4100, formaPagamento:'transferência', status:'baixada', comprovante:'ted-tokio.pdf', observacao:'Recebimento total.', responsavel:'Marina Lopes' },
+    { id:'BX-REC-1007', tipo:'recebimento', contaId:'REC-1007-CLI', parcelaId:'PAR-REC-1007-CLI-1', data:'2026-06-11', valorBruto:900, taxaReal:14.31, valorLiquido:885.69, formaPagamento:'débito', status:'parcial', comprovante:'debito-1007.pdf', observacao:'Baixa parcial pendente.', responsavel:'Caio Dicieri' },
+    { id:'BX-REC-OUT', tipo:'recebimento', contaId:'REC-OUT-001', parcelaId:'PAR-REC-OUT-001-1', data:'2026-06-12', valorBruto:620, taxaReal:0, valorLiquido:600, formaPagamento:'pix', status:'baixada', comprovante:'pix-out.pdf', observacao:'Recebimento com desconto de R$ 20,00.', responsavel:'Rafael Santos' },
+    { id:'BX-REC-EST', tipo:'recebimento', contaId:'REC-AJUST-001', parcelaId:'PAR-REC-AJUST-001-1', data:'2026-06-09', valorBruto:700, taxaReal:0, valorLiquido:700, formaPagamento:'transferência', status:'estornada', comprovante:'estorno.pdf', observacao:'Estorno reabriu saldo e ficou no histórico.', responsavel:'Caio Dicieri' },
+    { id:'BX-PAG-1042-1', tipo:'pagamento', contaId:'PAG-1042-1', parcelaId:'PAR-PAG-1042-1-1', data:'2026-06-12', valorBruto:1190, juros:0, desconto:0, valorLiquido:1190, formaPagamento:'boleto', status:'parcial', comprovante:'boleto-1042.pdf', observacao:'Pagamento parcial da compra.', responsavel:'Marina Lopes' },
+    { id:'BX-PAG-2051', tipo:'pagamento', contaId:'PAG-2051', parcelaId:'PAR-PAG-2051-1', data:'2026-06-12', valorBruto:237.96, juros:0, desconto:0, valorLiquido:237.96, formaPagamento:'pix', status:'baixada', comprovante:'pix-2051.pdf', observacao:'Pagamento total.', responsavel:'Caio Dicieri' },
+    { id:'BX-PAG-1002', tipo:'pagamento', contaId:'PAG-1002', parcelaId:'PAR-PAG-1002-1', data:'2026-06-09', valorBruto:890, juros:0, desconto:0, valorLiquido:890, formaPagamento:'transferência', status:'baixada', comprovante:'ted-tintas.pdf', observacao:'Pagamento total.', responsavel:'Marina Lopes' },
+    { id:'BX-PAG-FOL', tipo:'pagamento', contaId:'PAG-FOL-001', parcelaId:'PAR-PAG-FOL-001-1', data:'2026-06-11', valorBruto:7200, juros:0, desconto:0, valorLiquido:7200, formaPagamento:'transferência', status:'baixada', comprovante:'folha.pdf', observacao:'Pagamento total.', responsavel:'Caio Dicieri' },
+    { id:'BX-PAG-2055', tipo:'pagamento', contaId:'PAG-2055', parcelaId:'PAR-PAG-2055-1', data:'2026-06-10', valorBruto:600, juros:0, desconto:0, valorLiquido:600, formaPagamento:'boleto', status:'parcial', comprovante:'boleto-2055.pdf', observacao:'Pagamento parcial.', responsavel:'Paula Nunes' },
+    { id:'BX-PAG-JUROS', tipo:'pagamento', contaId:'PAG-FIX-001', parcelaId:'PAR-PAG-FIX-001-1', data:'2026-06-06', valorBruto:6200, juros:62, desconto:0, valorLiquido:6262, formaPagamento:'transferência', status:'baixada', comprovante:'aluguel.pdf', observacao:'Pagamento com juros registrado.', responsavel:'Caio Dicieri' },
+    { id:'BX-PAG-EST', tipo:'pagamento', contaId:'PAG-EST-001', parcelaId:'PAR-PAG-EST-001-1', data:'2026-06-08', valorBruto:310, juros:0, desconto:0, valorLiquido:310, formaPagamento:'pix', status:'estornada', comprovante:'est-pag.pdf', observacao:'Estorno por devolução de material.', responsavel:'Marina Lopes' }
+  ];
+  d.baixasFinanceiras.forEach((b) => {
+    const parcela = d.parcelasFinanceiras.find((p) => p.id === b.parcelaId);
+    if (parcela && b.status !== 'estornada') { parcela.valorRealizado += b.valorLiquido; parcela.dataRealizacao = b.data; parcela.status = b.status === 'parcial' ? (b.tipo === 'recebimento' ? 'parcialmente recebida' : 'parcialmente paga') : (b.tipo === 'recebimento' ? 'recebida' : 'paga'); }
+  });
+
+  d.alertasFinanceiros = [
+    { prioridade:'Alta', descricao:'Conta a receber vencida da franquia OS 1042.', registro:'REC-1042-FRA', valor:1200, vencimento:'2026-06-10', acao:'Registrar recebimento' },
+    { prioridade:'Alta', descricao:'Conta a pagar vencida de energia.', registro:'PAG-FIX-002', valor:1480, vencimento:'2026-06-06', acao:'Registrar pagamento' },
+    { prioridade:'Média', descricao:'Compra PED-2053 sem conta a pagar confirmada.', registro:'compra-005', valor:570, vencimento:'2026-06-15', acao:'Criar conta' },
+    { prioridade:'Alta', descricao:'OS entregue com saldo a receber.', registro:'OS-1007', valor:885.69, vencimento:'2026-06-11', acao:'Cobrar saldo' },
+    { prioridade:'Média', descricao:'OS finalizada sem fechamento financeiro.', registro:'OS-1006', valor:3100, vencimento:'2026-06-12', acao:'Fechar OS' },
+    { prioridade:'Baixa', descricao:'Taxa não configurada em regra inativa corporativa.', registro:'REG-CORP', valor:0, vencimento:'2026-06-30', acao:'Revisar regra' },
+    { prioridade:'Média', descricao:'Valor líquido divergente no cartão 4x OS 1009.', registro:'REC-1009-CLI', valor:93.85, vencimento:'2026-06-30', acao:'Recalcular taxa' },
+    { prioridade:'Alta', descricao:'Baixa parcial pendente no farol HB20.', registro:'PAG-2055', valor:710, vencimento:'2026-06-18', acao:'Completar pagamento' },
+    { prioridade:'Média', descricao:'Complemento aprovado sem lançamento definitivo.', registro:'REC-COMP-1042', valor:950, vencimento:'2026-06-28', acao:'Criar lançamento' },
+    { prioridade:'Alta', descricao:'Conta cancelada com pagamento registrado para auditoria.', registro:'REC-CANC-001', valor:450, vencimento:'2026-06-15', acao:'Ver histórico' },
+    { prioridade:'Alta', descricao:'Divergência entre compra e conta a pagar PED-2056.', registro:'PAG-2056', valor:18, vencimento:'2026-06-15', acao:'Comparar compra' }
+  ];
+
+  d.rentabilidadeOS = [
+    { osId:'os-1042', cliente:'Roberto Almeida', seguradora:'Porto Seguro', receitaAprovada:12780, receitaLiquida:10653.35, custoEstimado:4588, custoReal:1190, lucroEstimado:6065.35, lucroRealizado:1512.28, margem:57, statusFinanceiro:'provisório com pendências', pendencias:['franquia vencida','compra parcialmente paga','complemento sem lançamento definitivo'] },
+    { osId:'OS-1002', cliente:'Bruno Alves', seguradora:'Tokio Marine', receitaAprovada:4100, receitaLiquida:4100, custoEstimado:890, custoReal:890, lucroEstimado:3210, lucroRealizado:3210, margem:78, statusFinanceiro:'fechada financeiramente', pendencias:[] },
+    { osId:'OS-1007', cliente:'Gabriela Costa', seguradora:'Particular', receitaAprovada:1800, receitaLiquida:1771.38, custoEstimado:1310, custoReal:600, lucroEstimado:461.38, lucroRealizado:285.69, margem:16, statusFinanceiro:'entregue com saldo', pendencias:['saldo a receber','pagamento parcial fornecedor'] },
+    { osId:'OS-1003', cliente:'Carla Moreno', seguradora:'Particular', receitaAprovada:9600, receitaLiquida:9600, custoEstimado:12800, custoReal:2228, lucroEstimado:-3200, lucroRealizado:-2228, margem:-23, statusFinanceiro:'prejuízo previsto', pendencias:['receita vencida','terceiro vencido'] },
+    { osId:'OS-1006', cliente:'Fabio Lima', seguradora:'Sompo Seguros', receitaAprovada:3100, receitaLiquida:3100, custoEstimado:237.96, custoReal:237.96, lucroEstimado:2862.04, lucroRealizado:-237.96, margem:92, statusFinanceiro:'sem fechamento', pendencias:['receita pendente'] }
+  ];
+
+  d.historicoFinanceiro = [
+    { data:'2026-06-02T10:20:00', usuario:'Marina Lopes', tipo:'conta criada', descricao:'Conta REC-1042-SEG criada para seguradora.', valorAnterior:'—', valorNovo:'R$ 8.203,35', registro:'REC-1042-SEG', osId:'os-1042' },
+    { data:'2026-06-02T10:21:00', usuario:'Marina Lopes', tipo:'parcela gerada', descricao:'3 parcelas da conta REC-1042-SEG geradas.', valorAnterior:'—', valorNovo:'3 parcelas', registro:'REC-1042-SEG', osId:'os-1042' },
+    { data:'2026-06-03T09:00:00', usuario:'Caio Dicieri', tipo:'taxa recalculada', descricao:'Taxa de cartão recalculada para crédito em 3x.', valorAnterior:'R$ 0,00', valorNovo:'R$ 296,65', registro:'REC-1042-SEG', osId:'os-1042' },
+    { data:'2026-06-04T16:00:00', usuario:'Marina Lopes', tipo:'conta vinculada à compra', descricao:'Conta a pagar PAG-1042-1 vinculada ao pedido PED-2042.', valorAnterior:'sem vínculo', valorNovo:'compra-001', registro:'PAG-1042-1', osId:'os-1042' },
+    { data:'2026-06-09T12:00:00', usuario:'Caio Dicieri', tipo:'estorno', descricao:'Estorno de ajuste REC-AJUST-001 registrado sem apagar histórico.', valorAnterior:'recebido', valorNovo:'estornada', registro:'REC-AJUST-001', osId:'OS-1002' },
+    { data:'2026-06-10T15:30:00', usuario:'Paula Nunes', tipo:'baixa parcial', descricao:'Pagamento parcial do farol HB20.', valorAnterior:'R$ 0,00', valorNovo:'R$ 600,00', registro:'PAG-2055', osId:'OS-1007' },
+    { data:'2026-06-11T10:40:00', usuario:'Caio Dicieri', tipo:'baixa parcial', descricao:'Recebimento parcial de Gabriela Costa.', valorAnterior:'R$ 0,00', valorNovo:'R$ 885,69', registro:'REC-1007-CLI', osId:'OS-1007' },
+    { data:'2026-06-11T17:10:00', usuario:'Marina Lopes', tipo:'vencimento alterado', descricao:'Franquia OS 1042 mantida vencida para alerta.', valorAnterior:'14/06/2026', valorNovo:'10/06/2026', registro:'REC-1042-FRA', osId:'os-1042' },
+    { data:'2026-06-12T09:00:00', usuario:'Caio Dicieri', tipo:'baixa total', descricao:'Conta REC-OUT-001 recebida com desconto.', valorAnterior:'R$ 620,00', valorNovo:'R$ 600,00', registro:'REC-OUT-001', osId:'' },
+    { data:'2026-06-12T09:30:00', usuario:'Marina Lopes', tipo:'renegociação', descricao:'Conta REC-1010-TER renegociada em duas parcelas.', valorAnterior:'1 parcela', valorNovo:'2 parcelas', registro:'REC-1010-TER', osId:'OS-1010' },
+    { data:'2026-06-12T10:00:00', usuario:'Caio Dicieri', tipo:'cancelamento', descricao:'Conta REC-CANC-001 cancelada por duplicidade mantendo trilha.', valorAnterior:'prevista', valorNovo:'cancelada', registro:'REC-CANC-001', osId:'OS-1005' },
+    { data:'2026-06-12T10:42:00', usuario:'Caio Dicieri', tipo:'fechamento', descricao:'OS 1002 fechada financeiramente sem pendências.', valorAnterior:'aberta', valorNovo:'fechada', registro:'OS-1002', osId:'OS-1002' },
+    { data:'2026-06-12T10:50:00', usuario:'Caio Dicieri', tipo:'reabertura', descricao:'Reabertura simulada disponível com motivo e observação.', valorAnterior:'fechada', valorNovo:'reaberta', registro:'OS-1002', osId:'OS-1002' }
+  ];
+
+  d.agendaEventos = [
+    ...d.agendaEventos,
+    ...d.contasReceber.slice(0, 8).map((a, i) => ({ id:`AGE-FIN-REC-${i+1}`, tipo:i%2?'parcela':'recebimento', data:a.vencimento, hora:'09:00', titulo:`Vencimento a receber ${a.id}`, descricao:a.descricao, responsavel:a.responsavel, status:a.status.includes('recebida')?'Concluído':'Pendente', registroTipo:'Conta a receber', registroId:a.id, link:`contas-receber.html?id=${a.id}` })),
+    ...d.contasPagar.slice(0, 8).map((a, i) => ({ id:`AGE-FIN-PAG-${i+1}`, tipo:i%2?'parcela':'pagamento', data:a.vencimento, hora:'15:00', titulo:`Vencimento a pagar ${a.id}`, descricao:a.descricao, responsavel:a.responsavel, status:a.status.includes('paga')?'Concluído':'Pendente', registroTipo:'Conta a pagar', registroId:a.id, link:`contas-pagar.html?id=${a.id}` })),
+    { id:'AGE-FIN-FECH-1042', tipo:'fechamento-financeiro', data:'2026-06-28', hora:'17:30', titulo:'Fechamento financeiro OS 1042', descricao:'Conferir pendências antes do fechamento financeiro.', responsavel:'Caio Dicieri', status:'Pendente', registroTipo:'OS', registroId:'OS 1042', link:'ordem-servico-detalhes.html?id=os-1042#financeiro' }
+  ];
+
+  const os1042 = d.financeiroOS['os-1042'];
+  if (os1042) {
+    os1042.receitas = d.contasReceber.filter((a) => a.osId === 'os-1042').map((a) => ({ pagador:a.pagador, descricao:a.descricao, bruto:a.valorBruto, taxa:a.taxa, liquido:a.valorLiquido, vencimento:a.vencimento, status:a.status }));
+    os1042.custos = { pecas:2380, materiais:980, terceiros:760, taxas:296.65, outros:180 };
+  }
+})();
