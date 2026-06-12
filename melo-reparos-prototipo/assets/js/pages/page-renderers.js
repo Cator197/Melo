@@ -21,7 +21,13 @@ window.MeloPages = (() => {
     'regras-pagamento.html': { title: 'Regras de pagamento', description: 'Configuração visual de prazos, parcelas e taxas.', module: 'Financeiro', icon: '◷' },
     'rentabilidade.html': { title: 'Rentabilidade por OS', description: 'Lucro estimado e realizado por ordem de serviço.', module: 'Financeiro', icon: '◰' },
     'categorias-financeiras.html': { title: 'Categorias financeiras', description: 'Categorias fictícias de receitas e despesas.', module: 'Financeiro', icon: '☷' },
-    'relatorios.html': { title: 'Relatórios', description: 'Área reservada para relatórios gerenciais e indicadores consolidados.', module: 'Gestão', icon: '◰' },
+    'relatorios.html': { title: 'Relatórios', description: 'Relatórios gerenciais e indicadores consolidados.', module: 'Gestão', icon: '◰' },
+    'entregas.html': { title: 'Entregas', description: 'Controle de entregas e checklist final.', module: 'Operação', icon: '✓' },
+    'cliente-detalhes.html': { title: 'Detalhes do Cliente', description: 'Detalhes cadastrais do cliente.', module: 'Cadastros', icon: '☻' },
+    'veiculo-detalhes.html': { title: 'Detalhes do Veículo', description: 'Detalhes do veículo.', module: 'Cadastros', icon: '▰' },
+    'fornecedor-detalhes.html': { title: 'Detalhes do Fornecedor', description: 'Detalhes do fornecedor.', module: 'Cadastros', icon: '◫' },
+    'configuracoes-etapas.html': { title: 'Etapas', description: 'Configuração visual de etapas e condições.', module: 'Sistema', icon: '⚙' },
+    'auditoria.html': { title: 'Auditoria', description: 'Auditoria visual do protótipo.', module: 'Sistema', icon: '◉' },
     'clientes.html': { title: 'Clientes', description: 'Cadastro inicial de clientes usado pelos dados fictícios.', module: 'Cadastros', icon: '☻' },
     'veiculos.html': { title: 'Veículos', description: 'Cadastro inicial de veículos com vínculo a clientes e ordens de serviço.', module: 'Cadastros', icon: '▰' },
     'fornecedores.html': { title: 'Fornecedores', description: 'Cadastro inicial de fornecedores de peças, tintas e serviços.', module: 'Cadastros', icon: '◫' },
@@ -32,6 +38,7 @@ window.MeloPages = (() => {
 
   function render() {
     const file = window.MeloNavigation.currentFile();
+    if (window.MeloStage7Module && window.MeloStage7Module.handles(file)) return window.MeloStage7Module.render(file);
     if (file === 'ordens-servico.html' && window.MeloOSModule) return window.MeloOSModule.renderList();
     if (file === 'ordem-servico-detalhes.html' && window.MeloOSModule) return window.MeloOSModule.renderDetail();
     if (file === 'producao.html' && window.MeloProductionModule) return window.MeloProductionModule.render();

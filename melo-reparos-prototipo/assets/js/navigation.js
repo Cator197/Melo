@@ -1,19 +1,26 @@
 window.MeloNavigation = (() => {
   const navItems = [
     { label: 'Início', icon: '⌂', href: 'inicio.html', module: 'Painel' },
-    { label: 'Ordens de Serviço', icon: '▣', href: 'ordens-servico.html', module: 'Operação' },
-    { label: 'Produção', icon: '▦', href: 'producao.html', module: 'Operação' },
-    { label: 'Agenda', icon: '◷', href: 'agenda.html', module: 'Operação' },
-    { label: 'Complementos', icon: '+', href: 'complementos.html', module: 'Operação' },
-    { label: 'Compras', icon: '◫', href: 'compras.html', module: 'Suprimentos' },
+    { label: 'Operação', icon: '▣', children: [
+      { label: 'Ordens de Serviço', href: 'ordens-servico.html', module: 'Operação' },
+      { label: 'Produção', href: 'producao.html', module: 'Operação' },
+      { label: 'Agenda', href: 'agenda.html', module: 'Operação' },
+      { label: 'Complementos', href: 'complementos.html', module: 'Operação' },
+      { label: 'Entregas', href: 'entregas.html', module: 'Operação' }
+    ]},
+    { label: 'Compras', icon: '◫', children: [
+      { label: 'Pedidos', href: 'compras.html', module: 'Compras' },
+      { label: 'Itens pendentes', href: 'itens-pendentes.html', module: 'Compras' },
+      { label: 'Fornecedores', href: 'fornecedores.html', module: 'Compras' }
+    ]},
     { label: 'Financeiro', icon: '$', children: [
       { label: 'Visão geral', href: 'financeiro-visao-geral.html', module: 'Financeiro' },
-      { label: 'Regras de pagamento', href: 'regras-pagamento.html', module: 'Financeiro' },
       { label: 'Contas a receber', href: 'contas-receber.html', module: 'Financeiro' },
       { label: 'Contas a pagar', href: 'contas-pagar.html', module: 'Financeiro' },
       { label: 'Fluxo de caixa', href: 'fluxo-caixa.html', module: 'Financeiro' },
       { label: 'Rentabilidade', href: 'rentabilidade.html', module: 'Financeiro' },
-      { label: 'Categorias financeiras', href: 'categorias-financeiras.html', module: 'Financeiro' }
+      { label: 'Categorias', href: 'categorias-financeiras.html', module: 'Financeiro' },
+      { label: 'Regras de pagamento', href: 'regras-pagamento.html', module: 'Financeiro' }
     ]},
     { label: 'Relatórios', icon: '◰', href: 'relatorios.html', module: 'Gestão' },
     { label: 'Cadastros', icon: '☷', children: [
@@ -23,7 +30,12 @@ window.MeloNavigation = (() => {
       { label: 'Usuários', href: 'usuarios.html', module: 'Cadastros' }
     ]},
     { label: 'Importações', icon: '⇪', href: 'importacoes.html', module: 'Ferramentas' },
-    { label: 'Configurações', icon: '⚙', href: 'configuracoes.html', module: 'Sistema' }
+    { label: 'Configurações', icon: '⚙', children: [
+      { label: 'Geral', href: 'configuracoes.html', module: 'Sistema' },
+      { label: 'Etapas', href: 'configuracoes-etapas.html', module: 'Sistema' },
+      { label: 'Permissões', href: 'usuarios.html', module: 'Sistema' }
+    ]},
+    { label: 'Auditoria', icon: '◉', href: 'auditoria.html', module: 'Sistema' }
   ];
 
   function currentFile() {
@@ -43,6 +55,12 @@ window.MeloNavigation = (() => {
     if (file === 'ordem-servico-detalhes.html') return { label: 'Detalhes da OS', module: 'Operação' };
     if (file === 'compra-detalhes.html') return { label: 'Detalhes da Compra', module: 'Suprimentos' };
     if (file === 'itens-pendentes.html') return { label: 'Itens Pendentes', module: 'Suprimentos' };
+    if (file === 'entregas.html') return { label: 'Entregas', module: 'Operação' };
+    if (file === 'cliente-detalhes.html') return { label: 'Detalhes do Cliente', module: 'Cadastros' };
+    if (file === 'veiculo-detalhes.html') return { label: 'Detalhes do Veículo', module: 'Cadastros' };
+    if (file === 'fornecedor-detalhes.html') return { label: 'Detalhes do Fornecedor', module: 'Cadastros' };
+    if (file === 'configuracoes-etapas.html') return { label: 'Etapas', module: 'Sistema' };
+    if (file === 'auditoria.html') return { label: 'Auditoria', module: 'Sistema' };
     if (file === 'complemento-detalhes.html') return { label: 'Detalhes do Complemento', module: 'Operação' };
     if (file === 'componentes.html') return { label: 'Componentes', module: 'Validação visual' };
     return { label: 'Protótipo', module: 'Melo Reparos' };
