@@ -330,3 +330,167 @@ Sugestão curta de mensagem de commit:
 ```text
 feat: implementa produção e complementos no protótipo
 ```
+
+---
+
+## Etapa 5 — Compras, Itens e Recebimentos
+
+A Etapa 5 implementa o módulo completo de Compras do protótipo, sem recriar o projeto e mantendo a identidade visual, navegação, componentes e dados fictícios centralizados. Todas as operações são simuladas em JavaScript puro e atualizam a sessão atual do navegador.
+
+### Arquivos criados na Etapa 5
+
+- `paginas/compra-detalhes.html`
+- `paginas/itens-pendentes.html`
+- `assets/js/pages/purchases-module.js`
+
+### Arquivos modificados na Etapa 5
+
+- `paginas/compras.html`
+- `paginas/inicio.html`
+- `paginas/producao.html`
+- `paginas/ordem-servico-detalhes.html`
+- `index.html`
+- `assets/js/mock-data.js`
+- `assets/js/navigation.js`
+- `assets/js/pages/page-renderers.js`
+- `assets/js/pages/production-core.js`
+- `assets/js/pages/production-module.js`
+- `assets/js/pages/os-module.js`
+- `assets/css/components.css`
+- `README.md`
+
+### Como abrir e testar Compras
+
+Abra diretamente no navegador:
+
+```text
+melo-reparos-prototipo/paginas/compras.html
+melo-reparos-prototipo/paginas/compra-detalhes.html?id=compra-001
+melo-reparos-prototipo/paginas/itens-pendentes.html
+```
+
+Ou com servidor local:
+
+```bash
+cd melo-reparos-prototipo
+python3 -m http.server 8080
+```
+
+Depois acesse:
+
+- `http://localhost:8080/paginas/compras.html`
+- `http://localhost:8080/paginas/compra-detalhes.html?id=compra-001`
+- `http://localhost:8080/paginas/itens-pendentes.html`
+- `http://localhost:8080/paginas/ordem-servico-detalhes.html?id=os-1042`
+- `http://localhost:8080/paginas/producao.html`
+- `http://localhost:8080/paginas/inicio.html`
+
+### Funcionalidades entregues
+
+A página `paginas/compras.html` possui:
+
+- cabeçalho com título, breadcrumb, descrição, última atualização fictícia e total encontrado;
+- botões de ação: Nova compra, Registrar recebimento e Exportar;
+- indicadores clicáveis para compras abertas, itens aguardando compra, pedidos aguardando entrega, recebimentos parciais, atrasos, veículos aguardando peça, compras sem conta a pagar e valor pendente de recebimento;
+- três modos de visualização: Pedidos, Itens e Fornecedores, com preferência salva localmente;
+- filtros por pesquisa livre, pedido, item, código, fornecedor, OS, placa, veículo, status do pedido, status do item, status financeiro, período, previsão, atrasos, recebimento parcial, sem conta a pagar e responsável;
+- filtros ativos com remoção individual;
+- ações rápidas por pedido e por item, com ações desabilitadas quando o status não permite;
+- criação simulada de compra com múltiplos itens e vínculos com uma ou várias OSs;
+- rateio por valor, percentual ou quantidade, com validações visuais de estouro e justificativa para diferença;
+- registro de recebimento total ou parcial;
+- registro de divergências de recebimento;
+- registro de devolução sem apagar o recebimento original;
+- geração confirmada de conta a pagar fictícia;
+- marcação como “Não necessita lançamento financeiro”.
+
+A página `paginas/compra-detalhes.html` lê o parâmetro `id`. Exemplo:
+
+```text
+compra-detalhes.html?id=compra-001
+```
+
+Ela possui cabeçalho de resumo e abas:
+
+1. Visão geral;
+2. Itens;
+3. Ordens de Serviço;
+4. Recebimentos;
+5. Financeiro;
+6. Documentos;
+7. Histórico.
+
+A página `paginas/itens-pendentes.html` consolida itens solicitados, sem fornecedor, não comprados, pedidos, parcialmente recebidos e atrasados.
+
+### Interações simuladas
+
+As ações abaixo atualizam a interface durante a sessão:
+
+- criar compra temporária;
+- adicionar múltiplos itens no modal;
+- vincular item a uma OS ou a duas OSs;
+- recalcular resumo da compra;
+- alterar rateio;
+- registrar recebimento total;
+- registrar recebimento parcial;
+- marcar avaria, item incorreto ou quantidade divergente;
+- registrar devolução parcial ou total;
+- cancelar compra ou item;
+- anexar documento fictício;
+- gerar conta a pagar após revisão;
+- marcar compra como sem necessidade de lançamento;
+- atualizar peças pendentes e custos vinculados à OS durante a sessão;
+- refletir peças pendentes na Produção;
+- manter “Aguardando peça” como condição paralela, sem alterar a etapa principal da OS.
+
+### Dados fictícios da Etapa 5
+
+`assets/js/mock-data.js` foi ampliado com 11 pedidos de compra e 25 itens, cobrindo:
+
+- pedido realizado aguardando entrega;
+- parcialmente recebido;
+- recebido integralmente;
+- atrasado;
+- sem conta a pagar;
+- não necessita lançamento financeiro;
+- vários itens;
+- várias OSs e veículos;
+- devolução parcial;
+- cancelamento;
+- item sem fornecedor;
+- item sem rateio completo;
+- item com divergência;
+- item de complemento aprovado;
+- item vinculado à OS 1042.
+
+A OS 1042 permanece como principal demonstração, com itens de compra, recebimento parcial, fornecedor, previsão, custo rateado e condição paralela “Aguardando peça”.
+
+### Integrações revisadas
+
+- **OS:** a aba Compras mostra pedidos, itens, fornecedor, quantidade destinada, recebida, pendência, previsão, custo estimado, custo real, rateio, conta a pagar, divergências e devoluções.
+- **Produção:** os cards exibem peças pendentes e link “Ver peças”; a etapa principal permanece independente da condição “Aguardando peça”.
+- **Início:** indicadores e alertas passam a considerar compras em aberto e compras sem conta a pagar.
+- **Financeiro:** contas a pagar são criadas apenas após confirmação e ficam vinculadas à compra de forma fictícia.
+
+### Limitações
+
+- Não há backend, banco de dados ou persistência definitiva.
+- Não há upload real de documentos.
+- Não há cotação com múltiplos fornecedores nesta etapa.
+- Não há módulo financeiro completo, conciliação bancária ou emissão fiscal.
+- As alterações existem apenas na sessão atual da página e podem ser perdidas ao recarregar, conforme esperado para o protótipo.
+
+### Decisões assumidas
+
+- O status operacional, o status de recebimento e o status financeiro foram mantidos separados.
+- Compras canceladas não entram no custo real ativo de OS.
+- Devoluções permanecem registradas no histórico e não removem recebimentos originais.
+- A criação de conta a pagar exige confirmação explícita em modal.
+- Valor não rateado exige justificativa no fluxo de rateio.
+- “Aguardando peça” continua sendo condição paralela e não substitui a etapa produtiva.
+
+### Sugestão de mensagem de commit
+
+```text
+feat: implementa módulo de compras e recebimentos
+```

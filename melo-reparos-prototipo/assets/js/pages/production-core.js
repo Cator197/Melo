@@ -66,7 +66,7 @@ window.MeloProductionCore = (() => {
   function stageInfo(os){ const limit=data().limitesEtapa?.[os.etapaId] || defaultLimits[os.etapaId] || 2; const days=daysBetween(os.etapaEntrada||os.entrada); const diff=days-limit; const situation=!os.etapaEntrada?'sem data de entrada':diff>0?'atrasado':diff>=-1?'próximo do limite':'dentro do prazo'; return {days,limit,diff,situation}; }
   function overdueDelivery(os){ return os.previsao && os.previsao < today; }
   function openComplements(os){ return data().complementos.filter((co)=>co.osId===os.id && !['concluído','cancelado','recusado'].includes(co.status)); }
-  function waitingParts(os){ const pending = data().pecasOS?.filter((p)=>p.osId===os.id && !String(p.situacao||'').toLowerCase().includes('recebido')).length || 0; return pending || ((os.condicoes||[]).includes('CON-01') ? 1 : 0); }
+  function waitingParts(os){ if(window.MeloPurchasesModule) window.MeloPurchasesModule.syncOsCosts(); const pending = data().pecasOS?.filter((p)=>p.osId===os.id && (p.quantidadePendente||0)>0 && !String(p.situacao||'').toLowerCase().includes('cancelado')).length || 0; return pending || ((os.condicoes||[]).includes('CON-01') ? 1 : 0); }
   function addHistory(os,text,type='Produção'){ const item={id:`HIS-${Date.now()}`,osId:os.id,data:today,hora:new Date().toTimeString().slice(0,5),tipo:type,descricao:text,usuario:currentUser().nome}; data().historicoOS.unshift(item); data()._productionHistory.unshift(item); }
   function currentUser(){ return users.find((u)=>u.id===data()._selectedUserId) || users[0]; }
   function canMove(){ return !!currentUser().canMove; }
