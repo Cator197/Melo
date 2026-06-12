@@ -6,7 +6,8 @@ window.MeloPages = (() => {
   const dayMs = 24 * 60 * 60 * 1000;
 
   const pageConfigs = {
-    'ordens-servico.html': { title: 'Ordens de Serviço', description: 'Base inicial para acompanhamento das OS, sem detalhamento completo nesta etapa.', module: 'Operação', icon: '▣' },
+    'ordens-servico.html': { title: 'Ordens de Serviço', description: 'Lista funcional de OS com filtros, ações rápidas e visualizações alternadas.', module: 'Operação', icon: '▣' },
+    'ordem-servico-detalhes.html': { title: 'Detalhes da OS', description: 'Administração operacional simulada da Ordem de Serviço.', module: 'Operação', icon: '▣' },
     'producao.html': { title: 'Produção', description: 'Visão preparatória das etapas produtivas. O Kanban completo será desenvolvido em etapa futura.', module: 'Operação', icon: '▦' },
     'agenda.html': { title: 'Agenda', description: 'Agenda operacional com visão por dia, semana e mês para compromissos da oficina.', module: 'Operação', icon: '◷' },
     'complementos.html': { title: 'Complementos', description: 'Controle inicial de complementos vinculados às ordens de serviço.', module: 'Operação', icon: '+' },
@@ -26,6 +27,8 @@ window.MeloPages = (() => {
 
   function render() {
     const file = window.MeloNavigation.currentFile();
+    if (file === 'ordens-servico.html' && window.MeloOSModule) return window.MeloOSModule.renderList();
+    if (file === 'ordem-servico-detalhes.html' && window.MeloOSModule) return window.MeloOSModule.renderDetail();
     if (file === 'inicio.html') return renderInicio();
     if (file === 'agenda.html') return renderAgenda();
     if (file === 'componentes.html') return renderComponentes();
@@ -35,7 +38,7 @@ window.MeloPages = (() => {
   function renderInicio() {
     const d = data();
     const eventosHoje = d.agendaEventos.filter((evento) => evento.data === today);
-    const carrosAtivos = d.ordensServico.filter((os) => os.status !== 'Finalizada');
+    const carrosAtivos = d.ordensServico.filter((os) => !['Finalizado', 'Entregue', 'Fechado', 'Cancelado'].includes(os.status));
     const atrasadas = carrosAtivos.filter((os) => os.previsao < today);
     const longas = longStageVehicles();
     const comprasPendentes = d.compras.filter((compra) => compra.status !== 'Entregue');
@@ -235,7 +238,7 @@ window.MeloPages = (() => {
   }
 
   function longStageVehicles() {
-    return data().ordensServico.filter((os) => os.status !== 'Finalizada').map((os) => {
+    return data().ordensServico.filter((os) => !['Finalizado', 'Entregue', 'Fechado', 'Cancelado'].includes(os.status)).map((os) => {
       const vehicle = byId(data().veiculos, os.veiculoId);
       const etapa = byId(data().etapasProducao, os.etapaId);
       const dias = daysBetween(os.etapaEntrada || os.entrada, today);
