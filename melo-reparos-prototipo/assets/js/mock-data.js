@@ -172,3 +172,89 @@ window.MeloMockData = {
     { id: 'USR-005', nome: 'Paula Nunes', perfil: 'Compras', email: 'paula@melo.local' }
   ]
 };
+
+
+(() => {
+  const d = window.MeloMockData;
+  const osAlloc = (osId, quantidade, valor, percentual) => ({ osId, quantidade, valor, percentual });
+  const item = (id, descricao, codigo, qtd, recebida, unit, status, previsao, alocacoes, extra = {}) => {
+    const desconto = extra.desconto || 0;
+    const frete = extra.frete || 0;
+    const custoTotal = Math.round((qtd * unit - desconto + frete) * 100) / 100;
+    return { id, descricao, codigo, quantidade: qtd, unidade: extra.unidade || 'un', quantidadeRecebida: recebida, quantidadePendente: Math.max(0, qtd - recebida), custoUnitario: unit, desconto, freteProporcional: frete, custoTotal, previsao: previsao || extra.previsao || '2026-06-14', status, observacao: extra.observacao || '', complementoId: extra.complementoId || '', fornecedorId: extra.fornecedorId || '', divergencias: extra.divergencias || [], devolucoes: extra.devolucoes || [], documentos: extra.documentos || [], alocacoes: alocacoes || [] };
+  };
+  const hist = (tipo, descricao, dataHora = '2026-06-11T10:00:00', usuario = 'Paula Nunes', antes = '', depois = '', itemId = '', osId = '') => ({ id: `HCOMP-${Math.random().toString(36).slice(2, 9)}`, dataHora, usuario, tipo, descricao, antes, depois, itemId, osId });
+  const docs = (base) => [
+    { id: `${base}-doc-1`, nome: `${base.toLowerCase()}-pedido.pdf`, categoria: 'pedido', data: '2026-06-08', usuario: 'Paula Nunes', tamanho: '220 KB' },
+    { id: `${base}-doc-2`, nome: `${base.toLowerCase()}-nf.pdf`, categoria: 'nota fiscal', data: '2026-06-10', usuario: 'Caio Dicieri', tamanho: '340 KB' }
+  ];
+  d.compras = [
+    { id:'compra-001', pedido:'PED-2042', pedidoExterno:'AP-7781', fornecedorId:'FOR-001', dataCompra:'2026-06-08', responsavel:'Paula Nunes', previsaoEntrega:'2026-06-13', formaPagamento:'boleto', condicaoPagamento:'7 dias', observacoes:'Compra principal da OS 1042; recebimento parcial mantém Aguardando peça.', necessitaContaPagar:true, contaPagarId:'PAG-1042-1', status:'parcialmente recebido', statusRecebimento:'parcial', statusFinanceiro:'conta a pagar criada', itens:[
+      item('pci-001','Paralama dianteiro Onix','GM-ONX-PAR-21',1,1,1450,'recebido','2026-06-10',[osAlloc('os-1042',1,1450,100)]),
+      item('pci-002','Suporte interno dianteiro Onix','GM-ONX-SUP-21',1,0,680,'pedido','2026-06-13',[osAlloc('os-1042',1,680,100)],{observacao:'Peça pendente mantém OS 1042 aguardando peça.'}),
+      item('pci-003','Moldura de acabamento frontal','GM-ONX-MOL-21',2,1,125,'parcialmente recebido','2026-06-13',[osAlloc('os-1042',2,250,100)])
+    ], recebimentos:[{id:'REC-COMP-001',data:'2026-06-10',documento:'NF-2042-A',responsavel:'Paula Nunes',itens:[{itemId:'pci-001',quantidade:1},{itemId:'pci-003',quantidade:1}],observacao:'Recebimento parcial.'}], divergencias:[], devolucoes:[], documentos:docs('PED-2042'), historico:[hist('criação','Pedido criado e vinculado à OS 1042.','2026-06-08T09:10:00'),hist('recebimento parcial','Recebidas 2 de 4 unidades vinculadas.','2026-06-10T08:50:00','','pedido','parcialmente recebido','','os-1042')] },
+    { id:'compra-002', pedido:'PED-2050', fornecedorId:'FOR-002', dataCompra:'2026-06-09', responsavel:'Lucas Prado', previsaoEntrega:'2026-06-12', formaPagamento:'pix', condicaoPagamento:'à vista', observacoes:'Tinta rateada entre duas OSs.', necessitaContaPagar:true, contaPagarId:null, status:'pedido realizado', statusRecebimento:'pendente', statusFinanceiro:'lançamento pendente', itens:[
+      item('pci-004','Tinta PU azul perolizado','TIN-AZP-900',3,0,210,'pedido','2026-06-12',[osAlloc('OS-1004',1.8,378,60),osAlloc('OS-1007',1.2,252,40)]),
+      item('pci-005','Catalisador PU premium','CAT-PU-05',2,0,85,'pedido','2026-06-12',[osAlloc('OS-1004',1,85,50),osAlloc('OS-1007',1,85,50)]),
+      item('pci-006','Diluente acabamento','DIL-AC-01',1,0,58,'pedido','2026-06-12',[osAlloc('OS-1004',1,58,100)])
+    ], recebimentos:[], divergencias:[], devolucoes:[], documentos:[docs('PED-2050')[0]], historico:[hist('criação','Pedido realizado para Tintas Premium.','2026-06-09T14:10:00')] },
+    { id:'compra-003', pedido:'PED-2051', fornecedorId:'FOR-004', dataCompra:'2026-06-07', responsavel:'Caio Dicieri', previsaoEntrega:'2026-06-09', formaPagamento:'cartão', condicaoPagamento:'1 parcela', observacoes:'Compra recebida integralmente.', necessitaContaPagar:true, contaPagarId:'PAG-2051', status:'recebido', statusRecebimento:'total', statusFinanceiro:'pago', itens:[
+      item('pci-007','Kit presilhas dianteiro','PRS-DIA-12',12,12,9.83,'recebido','2026-06-09',[osAlloc('os-1042',12,117.96,100)]),
+      item('pci-008','Lixa P400 pacote','LIX-P400',5,5,24,'recebido','2026-06-09',[osAlloc('OS-1002',5,120,100)])
+    ], recebimentos:[{id:'REC-COMP-003',data:'2026-06-09',documento:'NF-2051',responsavel:'Caio Dicieri',itens:[{itemId:'pci-007',quantidade:12},{itemId:'pci-008',quantidade:5}]}], divergencias:[], devolucoes:[], documentos:docs('PED-2051'), historico:[hist('recebimento','Todos os itens recebidos e conferidos.','2026-06-09T16:30:00')] },
+    { id:'compra-004', pedido:'PED-2052', fornecedorId:'FOR-001', dataCompra:'2026-06-05', responsavel:'Paula Nunes', previsaoEntrega:'2026-06-10', formaPagamento:'boleto', condicaoPagamento:'10 dias', observacoes:'Pedido atrasado do fornecedor.', necessitaContaPagar:true, contaPagarId:null, status:'pedido realizado', statusRecebimento:'pendente', statusFinanceiro:'lançamento pendente', itens:[
+      item('pci-009','Travessa frontal Duster','REN-DUS-TRV',1,0,1850,'pedido','2026-06-10',[osAlloc('OS-1008',1,1850,100)]),
+      item('pci-010','Guia parachoque Duster','REN-DUS-GUI',2,0,145,'pedido','2026-06-10',[osAlloc('OS-1008',2,290,100)])
+    ], recebimentos:[], divergencias:[], devolucoes:[], documentos:[docs('PED-2052')[0]], historico:[hist('previsão alterada','Fornecedor informou atraso de entrega.','2026-06-10T11:20:00','Paula Nunes','2026-06-09','2026-06-10')] },
+    { id:'compra-005', pedido:'PED-2053', fornecedorId:'FOR-003', dataCompra:'2026-06-10', responsavel:'Rafael Santos', previsaoEntrega:'2026-06-15', formaPagamento:'transferência', condicaoPagamento:'na entrega', observacoes:'Serviço terceirizado ainda sem título financeiro.', necessitaContaPagar:true, contaPagarId:null, status:'pedido realizado', statusRecebimento:'pendente', statusFinanceiro:'lançamento pendente', itens:[
+      item('pci-011','Martelinho lateral Ranger','MTE-RAN-LAT',1,0,1500,'pedido','2026-06-15',[osAlloc('OS-1010',1,1500,100)]),
+      item('pci-012','Polimento técnico pós martelinho','POL-MTE-01',1,0,260,'pedido','2026-06-15',[osAlloc('OS-1010',1,260,100)])
+    ], recebimentos:[], divergencias:[], devolucoes:[], documentos:[], historico:[hist('criação','Compra necessita lançamento financeiro, ainda pendente.','2026-06-10T15:00:00')] },
+    { id:'compra-006', pedido:'PED-2054', fornecedorId:'FOR-005', dataCompra:'2026-06-08', responsavel:'Marina Lopes', previsaoEntrega:'2026-06-11', formaPagamento:'cortesia', condicaoPagamento:'não aplicável', observacoes:'Bonificação logística sem lançamento financeiro.', necessitaContaPagar:false, semLancamentoMotivo:'bonificação', contaPagarId:null, status:'recebido', statusRecebimento:'total', statusFinanceiro:'lançamento não necessário', itens:[
+      item('pci-013','Coleta emergencial de peça','LOG-COL-EMG',1,1,0,'recebido','2026-06-11',[osAlloc('OS-1001',1,0,100)]),
+      item('pci-014','Entrega avulsa fornecedor','LOG-ENT-AVL',1,1,0,'recebido','2026-06-11',[osAlloc('os-1042',1,0,100)])
+    ], recebimentos:[{id:'REC-COMP-006',data:'2026-06-11',responsavel:'Marina Lopes',itens:[{itemId:'pci-013',quantidade:1},{itemId:'pci-014',quantidade:1}]}], divergencias:[], devolucoes:[], documentos:[], historico:[hist('financeiro','Marcada como não necessita lançamento financeiro.','2026-06-08T13:00:00','Marina Lopes','','bonificação')] },
+    { id:'compra-007', pedido:'PED-2055', fornecedorId:'FOR-001', dataCompra:'2026-06-04', responsavel:'Paula Nunes', previsaoEntrega:'2026-06-07', formaPagamento:'boleto', condicaoPagamento:'14 dias', observacoes:'Pedido com devolução parcial registrada.', necessitaContaPagar:true, contaPagarId:'PAG-2055', status:'devolução parcial', statusRecebimento:'parcial com devolução', statusFinanceiro:'parcialmente pago', itens:[
+      item('pci-015','Farol esquerdo HB20','HYU-HB20-FE',1,1,980,'recebido','2026-06-07',[osAlloc('OS-1007',1,980,100)]),
+      item('pci-016','Suporte farol HB20','HYU-HB20-SUPF',2,1,165,'devolvido parcialmente','2026-06-07',[osAlloc('OS-1007',2,330,100)],{devolucoes:[{id:'DEV-001',quantidade:1,motivo:'Peça com trava quebrada',data:'2026-06-08',responsavel:'Paula Nunes',impactoFinanceiro:-165,status:'troca solicitada'}]})
+    ], recebimentos:[{id:'REC-COMP-007',data:'2026-06-07',documento:'NF-2055',responsavel:'Paula Nunes',itens:[{itemId:'pci-015',quantidade:1},{itemId:'pci-016',quantidade:2}]}], divergencias:[], devolucoes:[{id:'DEV-001',itemId:'pci-016',quantidade:1,motivo:'Peça avariada',data:'2026-06-08',responsavel:'Paula Nunes',impactoFinanceiro:-165,status:'troca solicitada'}], documentos:docs('PED-2055'), historico:[hist('devolução','Devolução parcial do suporte de farol registrada.','2026-06-08T10:40:00','Paula Nunes','2 válidas','1 válida','pci-016','OS-1007')] },
+    { id:'compra-008', pedido:'PED-2056', fornecedorId:'FOR-002', dataCompra:'2026-06-06', responsavel:'Lucas Prado', previsaoEntrega:'2026-06-08', formaPagamento:'pix', condicaoPagamento:'à vista', observacoes:'Divergência de custo aceita parcialmente.', necessitaContaPagar:true, contaPagarId:'PAG-2056', status:'recebido', statusRecebimento:'total com divergência', statusFinanceiro:'conta a pagar criada', itens:[
+      item('pci-017','Primer alto sólidos','PRI-AS-3L',2,2,240,'recebido','2026-06-08',[osAlloc('OS-1003',1,240,50),osAlloc('OS-1009',1,240,50)],{divergencias:[{id:'DIV-001',tipo:'custo divergente',quantidade:2,descricao:'Nota fiscal veio R$ 20 acima por unidade.',responsavel:'Lucas Prado',data:'2026-06-08',status:'aceita',solucao:'Aceito após aprovação do gestor.'}]}),
+      item('pci-018','Massa poliéster premium','MAS-POL-1KG',4,4,62,'recebido','2026-06-08',[osAlloc('OS-1003',2,124,50),osAlloc('OS-1009',2,124,50)])
+    ], recebimentos:[{id:'REC-COMP-008',data:'2026-06-08',documento:'NF-2056',responsavel:'Lucas Prado',itens:[{itemId:'pci-017',quantidade:2},{itemId:'pci-018',quantidade:4}]}], divergencias:[{id:'DIV-001',tipo:'custo divergente',itemId:'pci-017',quantidade:2,descricao:'Custo divergente na NF.',responsavel:'Lucas Prado',data:'2026-06-08',status:'aceita',solucao:'Ajuste aceito.'}], devolucoes:[], documentos:docs('PED-2056'), historico:[hist('divergência','Divergência de custo aceita no recebimento.','2026-06-08T17:00:00')] },
+    { id:'compra-009', pedido:'PED-2057', fornecedorId:'FOR-004', dataCompra:'2026-06-11', responsavel:'Caio Dicieri', previsaoEntrega:'2026-06-16', formaPagamento:'boleto', condicaoPagamento:'30 dias', observacoes:'Compra cancelada; não entra em custo real ativo.', necessitaContaPagar:true, contaPagarId:null, status:'cancelado', statusRecebimento:'cancelado', statusFinanceiro:'lançamento cancelado', itens:[
+      item('pci-019','Compressor de pintura reserva','CMP-PIN-RES',1,0,2200,'cancelado','2026-06-16',[]),
+      item('pci-020','Mangueira pneumática 10m','MAN-PNE-10',1,0,190,'cancelado','2026-06-16',[])
+    ], recebimentos:[], divergencias:[], devolucoes:[], documentos:[], historico:[hist('cancelamento','Pedido cancelado antes de recebimento; custo removido da visão real.','2026-06-11T18:00:00','Caio Dicieri')] },
+    { id:'compra-010', pedido:'PED-2058', fornecedorId:null, dataCompra:'2026-06-12', responsavel:'Marina Lopes', previsaoEntrega:'2026-06-17', formaPagamento:'a definir', condicaoPagamento:'a definir', observacoes:'Itens solicitados ainda sem fornecedor; sem cotação multifornecedor nesta fase.', necessitaContaPagar:true, contaPagarId:null, status:'aguardando compra', statusRecebimento:'não comprado', statusFinanceiro:'lançamento pendente', itens:[
+      item('pci-021','Sensor de estacionamento complemento aprovado','CMP-SEN-EST',2,0,310,'não comprado','2026-06-17',[osAlloc('os-1042',1,310,50),osAlloc('OS-1001',1,310,50)],{complementoId:'CMP-1042-1'}),
+      item('pci-022','Capa retrovisor Civic complemento','HON-CIV-CAP',1,0,450,'solicitado','2026-06-17',[osAlloc('OS-1001',1,450,100)],{complementoId:'CMP-1001-1'}),
+      item('pci-023','Grampo acabamento sem rateio completo','GRP-ACB-20',20,0,4.5,'solicitado','2026-06-17',[osAlloc('OS-1002',10,45,50)],{observacao:'Metade ainda não rateada; exige justificativa para confirmar.'})
+    ], recebimentos:[], divergencias:[], devolucoes:[], documentos:[], historico:[hist('item adicionado','Itens de complemento aprovado entraram como aguardando compra.','2026-06-12T09:30:00','Marina Lopes')] },
+    { id:'compra-011', pedido:'PED-2059', fornecedorId:'FOR-001', dataCompra:'2026-06-12', responsavel:'Paula Nunes', previsaoEntrega:'2026-06-18', formaPagamento:'boleto', condicaoPagamento:'21 dias', observacoes:'Rascunho com item sem OS vinculada.', necessitaContaPagar:true, contaPagarId:null, status:'rascunho', statusRecebimento:'rascunho', statusFinanceiro:'lançamento pendente', itens:[
+      item('pci-024','Parachoque traseiro Kicks','NIS-KIC-PTR',1,0,1250,'solicitado','2026-06-18',[osAlloc('OS-1009',1,1250,100)]),
+      item('pci-025','Sensor avulso sem OS vinculada','SEN-AVL-01',1,0,180,'solicitado','2026-06-18',[])
+    ], recebimentos:[], divergencias:[], devolucoes:[], documentos:[], historico:[hist('criação','Rascunho criado, ainda sem pedido realizado.','2026-06-12T11:00:00','Paula Nunes')] }
+  ];
+  d.compras.forEach((compra) => {
+    compra.itens.forEach((it) => { it.fornecedorId = compra.fornecedorId; it.compraId = compra.id; it.pedido = compra.pedido; });
+    compra.valor = compra.itens.reduce((s, it) => s + it.custoTotal, 0);
+    compra.quantidade = compra.itens.reduce((s, it) => s + it.quantidade, 0);
+    compra.quantidadeRecebida = compra.itens.reduce((s, it) => s + it.quantidadeRecebida, 0);
+    compra.item = compra.itens.map((it) => it.descricao).join(', ');
+    compra.osIds = [...new Set(compra.itens.flatMap((it) => it.alocacoes.map((a) => a.osId)))];
+    compra.osId = compra.osIds[0] || '';
+  });
+  d.pecasOS = d.compras.flatMap((compra) => compra.itens.flatMap((it) => it.alocacoes.map((al) => ({ id:`peca-${it.id}-${al.osId}`, compraId:compra.id, itemId:it.id, osId:al.osId, descricao:it.descricao, codigo:it.codigo, quantidade:al.quantidade, quantidadeRecebida:Math.min(al.quantidade, it.quantidadeRecebida), quantidadePendente:Math.max(0, al.quantidade - Math.min(al.quantidade, it.quantidadeRecebida)), fornecedorId:compra.fornecedorId, previsao:it.previsao || compra.previsaoEntrega, situacao:it.status, valorRateado:al.valor }))));
+  d.contasPagar = [
+    { id:'PAG-1042-1', fornecedorId:'FOR-001', compraId:'compra-001', descricao:'Pedido PED-2042 - peças Onix OS 1042', status:'Em aberto', valor:2380, vencimento:'2026-06-18' },
+    { id:'PAG-2051', fornecedorId:'FOR-004', compraId:'compra-003', descricao:'Pedido PED-2051 - presilhas e lixas', status:'Pago', valor:237.96, vencimento:'2026-06-12' },
+    { id:'PAG-2055', fornecedorId:'FOR-001', compraId:'compra-007', descricao:'Pedido PED-2055 - farol HB20', status:'Parcialmente pago', valor:1310, vencimento:'2026-06-18' },
+    { id:'PAG-2056', fornecedorId:'FOR-002', compraId:'compra-008', descricao:'Pedido PED-2056 - insumos pintura', status:'Em aberto', valor:728, vencimento:'2026-06-15' },
+    { id:'PAG-004', fornecedorId:'FOR-004', compraId:null, descricao:'Discos de lixa', status:'Vencendo hoje', valor:430, vencimento:'2026-06-12' },
+    { id:'PAG-005', fornecedorId:'FOR-005', compraId:null, descricao:'Coleta de peças', status:'Em aberto', valor:260, vencimento:'2026-06-18' }
+  ];
+  const os1042 = d.financeiroOS['os-1042'];
+  if (os1042) os1042.custos.pecas = d.pecasOS.filter((p) => p.osId === 'os-1042' && !String(p.situacao).includes('cancelado')).reduce((s, p) => s + (p.valorRateado || 0), 0);
+})();

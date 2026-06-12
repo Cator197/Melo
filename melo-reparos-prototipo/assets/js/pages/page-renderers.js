@@ -31,6 +31,9 @@ window.MeloPages = (() => {
     if (file === 'ordens-servico.html' && window.MeloOSModule) return window.MeloOSModule.renderList();
     if (file === 'ordem-servico-detalhes.html' && window.MeloOSModule) return window.MeloOSModule.renderDetail();
     if (file === 'producao.html' && window.MeloProductionModule) return window.MeloProductionModule.render();
+    if (file === 'compras.html' && window.MeloPurchasesModule) return window.MeloPurchasesModule.renderList();
+    if (file === 'compra-detalhes.html' && window.MeloPurchasesModule) return window.MeloPurchasesModule.renderDetail();
+    if (file === 'itens-pendentes.html' && window.MeloPurchasesModule) return window.MeloPurchasesModule.renderPending();
     if (file === 'complementos.html' && window.MeloComplementsModule) return window.MeloComplementsModule.renderList();
     if (file === 'complemento-detalhes.html' && window.MeloComplementsModule) return window.MeloComplementsModule.renderDetail();
     if (file === 'inicio.html') return renderInicio();
@@ -45,7 +48,7 @@ window.MeloPages = (() => {
     const carrosAtivos = d.ordensServico.filter((os) => !['Finalizado', 'Entregue', 'Fechado', 'Cancelado'].includes(os.status));
     const atrasadas = carrosAtivos.filter((os) => os.previsao < today);
     const longas = longStageVehicles();
-    const comprasPendentes = d.compras.filter((compra) => compra.status !== 'Entregue');
+    const comprasPendentes = d.compras.filter((compra) => !['recebido','cancelado'].includes(String(compra.status).toLowerCase()));
     const complementosPendentes = d.complementos.filter((comp) => comp.status === 'Aguardando aprovação');
     const receberHoje = d.contasReceber.filter((item) => item.vencimento === today && item.status !== 'Recebido');
     const pagarHoje = d.contasPagar.filter((item) => item.vencimento === today && item.status !== 'Pago');
@@ -55,6 +58,7 @@ window.MeloPages = (() => {
       { label: 'Entregas para hoje', value: eventosHoje.filter((e) => e.tipo === 'entrega').length, note: formatDate(today), href: 'agenda.html?tipo=entrega' },
       { label: 'Entregas atrasadas', value: atrasadas.length, note: 'Previsão anterior a hoje', href: 'ordens-servico.html?filtro=atrasadas' },
       { label: 'Compras pendentes', value: comprasPendentes.length, note: 'Peças ou serviços em aberto', href: 'compras.html?status=pendente' },
+      { label: 'Compras sem conta', value: d.compras.filter((p) => p.necessitaContaPagar && !p.contaPagarId && String(p.status).toLowerCase() !== 'cancelado').length, note: 'geração exige confirmação', href: 'compras.html?semConta=sim' },
       { label: 'Complementos aguardando', value: complementosPendentes.length, note: 'Aprovação do cliente/seguradora', href: 'complementos.html?status=aguardando' },
       { label: 'Recebimentos hoje', value: c().money(sum(receberHoje)), note: `${receberHoje.length} título(s)`, href: 'contas-receber.html?periodo=hoje' },
       { label: 'Pagamentos hoje', value: c().money(sum(pagarHoje)), note: `${pagarHoje.length} obrigação(ões)`, href: 'contas-pagar.html?periodo=hoje' }
@@ -120,7 +124,7 @@ window.MeloPages = (() => {
     if (file === 'ordens-servico.html') body = ordersTable(d.ordensServico) + c().pagination();
     else if (file === 'producao.html') body = productionOverview();
     else if (file === 'complementos.html') body = simpleTable(['ID', 'OS', 'Descrição', 'Status', 'Valor'], d.complementos.map((x) => [x.id, x.osId, x.descricao, c().statusBadge(x.status), c().money(x.valor)]));
-    else if (file === 'compras.html') body = simpleTable(['ID', 'Fornecedor', 'OS', 'Item', 'Status', 'Valor'], d.compras.map((x) => [x.id, byId(d.fornecedores, x.fornecedorId).nome, x.osId, x.item, c().statusBadge(x.status), c().money(x.valor)]));
+    else if (file === 'compras.html' && window.MeloPurchasesModule) return window.MeloPurchasesModule.renderList();
     else if (file === 'contas-receber.html') body = simpleTable(['ID', 'Cliente', 'Descrição', 'Status', 'Vencimento', 'Valor'], d.contasReceber.map((x) => [x.id, byId(d.clientes, x.clienteId).nome, x.descricao, c().statusBadge(x.status), formatDate(x.vencimento), c().money(x.valor)]));
     else if (file === 'contas-pagar.html') body = simpleTable(['ID', 'Fornecedor', 'Descrição', 'Status', 'Vencimento', 'Valor'], d.contasPagar.map((x) => [x.id, byId(d.fornecedores, x.fornecedorId).nome, x.descricao, c().statusBadge(x.status), formatDate(x.vencimento), c().money(x.valor)]));
     else if (file === 'financeiro-visao-geral.html' || file === 'fluxo-caixa.html') body = financeiroResumo(file);
