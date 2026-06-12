@@ -8,9 +8,10 @@ window.MeloPages = (() => {
   const pageConfigs = {
     'ordens-servico.html': { title: 'Ordens de Serviço', description: 'Lista funcional de OS com filtros, ações rápidas e visualizações alternadas.', module: 'Operação', icon: '▣' },
     'ordem-servico-detalhes.html': { title: 'Detalhes da OS', description: 'Administração operacional simulada da Ordem de Serviço.', module: 'Operação', icon: '▣' },
-    'producao.html': { title: 'Produção', description: 'Visão preparatória das etapas produtivas. O Kanban completo será desenvolvido em etapa futura.', module: 'Operação', icon: '▦' },
+    'producao.html': { title: 'Produção', description: 'Kanban, tabela e agenda simulados para controle de setores produtivos.', module: 'Operação', icon: '▦' },
     'agenda.html': { title: 'Agenda', description: 'Agenda operacional com visão por dia, semana e mês para compromissos da oficina.', module: 'Operação', icon: '◷' },
-    'complementos.html': { title: 'Complementos', description: 'Controle inicial de complementos vinculados às ordens de serviço.', module: 'Operação', icon: '+' },
+    'complementos.html': { title: 'Complementos', description: 'Fluxo simulado de solicitações, aprovações e impactos na OS.', module: 'Operação', icon: '+' },
+    'complemento-detalhes.html': { title: 'Detalhes do Complemento', description: 'Detalhamento do complemento e aprovação simulada.', module: 'Operação', icon: '+' },
     'compras.html': { title: 'Compras', description: 'Fundação para pedidos, fornecedores e itens necessários à produção.', module: 'Suprimentos', icon: '◫' },
     'financeiro-visao-geral.html': { title: 'Visão geral', description: 'Resumo financeiro inicial com indicadores fictícios e navegação para as rotinas.', module: 'Financeiro', icon: '$' },
     'contas-receber.html': { title: 'Contas a receber', description: 'Lista inicial de recebíveis relacionados às ordens de serviço.', module: 'Financeiro', icon: '↙' },
@@ -29,6 +30,9 @@ window.MeloPages = (() => {
     const file = window.MeloNavigation.currentFile();
     if (file === 'ordens-servico.html' && window.MeloOSModule) return window.MeloOSModule.renderList();
     if (file === 'ordem-servico-detalhes.html' && window.MeloOSModule) return window.MeloOSModule.renderDetail();
+    if (file === 'producao.html' && window.MeloProductionModule) return window.MeloProductionModule.render();
+    if (file === 'complementos.html' && window.MeloComplementsModule) return window.MeloComplementsModule.renderList();
+    if (file === 'complemento-detalhes.html' && window.MeloComplementsModule) return window.MeloComplementsModule.renderDetail();
     if (file === 'inicio.html') return renderInicio();
     if (file === 'agenda.html') return renderAgenda();
     if (file === 'componentes.html') return renderComponentes();
