@@ -5,8 +5,6 @@ window.MeloNavigation = (() => {
       { label: 'Ordens de Serviço', href: 'ordens-servico.html', module: 'Operação' },
       { label: 'Produção', href: 'producao.html', module: 'Operação' },
       { label: 'Agenda', href: 'agenda.html', module: 'Operação' },
-      { label: 'Complementos', href: 'complementos.html', module: 'Operação' },
-      { label: 'Entregas', href: 'entregas.html', module: 'Operação' }
     ]},
     { label: 'Compras', icon: '◫', children: [
       { label: 'Pedidos', href: 'compras.html', module: 'Compras' },
@@ -55,7 +53,6 @@ window.MeloNavigation = (() => {
     if (file === 'ordem-servico-detalhes.html') return { label: 'Detalhes da OS', module: 'Operação' };
     if (file === 'compra-detalhes.html') return { label: 'Detalhes da Compra', module: 'Suprimentos' };
     if (file === 'itens-pendentes.html') return { label: 'Itens Pendentes', module: 'Suprimentos' };
-    if (file === 'entregas.html') return { label: 'Entregas', module: 'Operação' };
     if (file === 'cliente-detalhes.html') return { label: 'Detalhes do Cliente', module: 'Cadastros' };
     if (file === 'veiculo-detalhes.html') return { label: 'Detalhes do Veículo', module: 'Cadastros' };
     if (file === 'fornecedor-detalhes.html') return { label: 'Detalhes do Fornecedor', module: 'Cadastros' };
