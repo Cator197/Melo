@@ -1,7 +1,7 @@
 window.MeloProductionCore = (() => {
   const today = '2026-06-12';
   const dayMs = 86400000;
-  const stageIds = ['ETP-01','ETP-02','ETP-03','ETP-04','ETP-05','ETP-06'];
+  const stageIds = ['ETP-01','ETP-02','ETP-03','ETP-03C','ETP-04','ETP-05','ETP-06'];
   const finalStageId = 'ETP-07';
   const closedStatuses = ['Entregue','Fechado','Cancelado'];
   const finishedStatus = 'Finalizado';
@@ -10,8 +10,8 @@ window.MeloProductionCore = (() => {
     { id:'CON-03', nome:'Complemento pendente' }, { id:'CON-04', nome:'Serviço terceirizado' },
     { id:'CON-05', nome:'Aguardando cliente' }, { id:'CON-06', nome:'Bloqueio técnico' }
   ];
-  const capacities = { 'ETP-01':4,'ETP-02':6,'ETP-03':4,'ETP-04':3,'ETP-05':4,'ETP-06':3 };
-  const defaultLimits = { 'ETP-01':2,'ETP-02':5,'ETP-03':2,'ETP-04':2,'ETP-05':2,'ETP-06':2,'ETP-07':1 };
+  const capacities = { 'ETP-01':4,'ETP-02':6,'ETP-03':4,'ETP-03C':3,'ETP-04':3,'ETP-05':4,'ETP-06':3 };
+  const defaultLimits = { 'ETP-01':2,'ETP-02':5,'ETP-03':2,'ETP-03C':3,'ETP-04':2,'ETP-05':2,'ETP-06':2,'ETP-07':1 };
   const users = [
     { id:'USR-001', nome:'Caio Dicieri', perfil:'Administrador', canMove:true },
     { id:'USR-003', nome:'Rafael Santos', perfil:'Produção', canMove:true },
@@ -21,6 +21,7 @@ window.MeloProductionCore = (() => {
   function ensureData(){
     const d=data(); if(!d) return;
     d.condicoesParalelas = conditionTypes.map((x)=> d.condicoesParalelas?.find((c)=>c.id===x.id) || x);
+    if(!d.etapasProducao?.some(e=>e.id==='ETP-03C')) d.etapasProducao.splice(3,0,{id:'ETP-03C',nome:'Complemento',ordem:3.5,prazo:3,setor:'Produção'});
     d.limitesEtapa = { ...defaultLimits, ...(d.limitesEtapa || {}) };
     d.etapasProducao?.forEach((e)=>{ if(defaultLimits[e.id]) e.prazo = defaultLimits[e.id]; });
     d._selectedUserId ||= 'USR-001';

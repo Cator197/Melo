@@ -61,25 +61,29 @@ window.MeloPages = (() => {
     const atrasadas = carrosAtivos.filter((os) => os.previsao < today);
     const longas = longStageVehicles();
     const comprasPendentes = d.compras.filter((compra) => !['recebido','cancelado'].includes(String(compra.status).toLowerCase()));
-    const complementosPendentes = d.complementos.filter((comp) => comp.status === 'Aguardando aprovação');
     const receberHoje = d.contasReceber.filter((item) => item.vencimento === today && item.status !== 'Recebido');
     const pagarHoje = d.contasPagar.filter((item) => item.vencimento === today && item.status !== 'Pago');
-    const kpis = [
-      { label: 'Veículos na oficina', value: carrosAtivos.length, note: 'OS ativas em produção', href: 'ordens-servico.html' },
-      { label: 'Veículos na fila', value: d.filaVeiculos.length, note: 'Entradas aguardando vaga', href: 'agenda.html?tipo=entrada' },
-      { label: 'Entregas para hoje', value: eventosHoje.filter((e) => e.tipo === 'entrega').length, note: formatDate(today), href: 'agenda.html?tipo=entrega' },
-      { label: 'Entregas atrasadas', value: atrasadas.length, note: 'Previsão anterior a hoje', href: 'ordens-servico.html?filtro=atrasadas' },
-      { label: 'Compras pendentes', value: comprasPendentes.length, note: 'Peças ou serviços em aberto', href: 'compras.html?status=pendente' },
-      { label: 'Compras sem conta', value: d.compras.filter((p) => p.necessitaContaPagar && !p.contaPagarId && String(p.status).toLowerCase() !== 'cancelado').length, note: 'geração exige confirmação', href: 'compras.html?semConta=sim' },
-      { label: 'Complementos aguardando', value: complementosPendentes.length, note: 'Aprovação do cliente/seguradora', href: 'complementos.html?status=aguardando' },
-      { label: 'Recebimentos hoje', value: c().money(sum(receberHoje)), note: `${receberHoje.length} título(s)`, href: 'contas-receber.html?periodo=hoje' },
-      { label: 'Pagamentos hoje', value: c().money(sum(pagarHoje)), note: `${pagarHoje.length} obrigação(ões)`, href: 'contas-pagar.html?periodo=hoje' }
+    const kpiGroups = [
+      ['Área operacional', [
+        { label: 'Orçamentos em análise', value: d.ordensServico.filter((os) => ['Orçamento importado','Aguardando aprovação'].includes(os.status)).length, note: 'Importados aguardando decisão', href: 'ordens-servico.html?status=analise' },
+        { label: 'Veículos na oficina', value: carrosAtivos.length, note: 'OS ativas em produção', href: 'ordens-servico.html' },
+        { label: 'Veículos na fila', value: d.filaVeiculos.length, note: 'Entradas aguardando vaga', href: 'agenda.html?tipo=entrada' },
+        { label: 'Entregas para hoje', value: eventosHoje.filter((e) => e.tipo === 'entrega').length, note: formatDate(today), href: 'agenda.html?tipo=entrega' },
+        { label: 'Entregas atrasadas', value: atrasadas.length, note: 'Previsão anterior a hoje', href: 'ordens-servico.html?filtro=atrasadas' }
+      ]],
+      ['Área de compras', [
+        { label: 'Compras pendentes', value: comprasPendentes.length, note: 'Peças ou serviços em aberto', href: 'compras.html?status=pendente' },
+        { label: 'Valor total em compras', value: c().money(sum(comprasPendentes.map((x) => ({ valor: x.total || x.valor || 0 })))), note: 'Pedidos pendentes', href: 'compras.html' }
+      ]],
+      ['Área financeira', [
+        { label: 'Recebimentos para hoje acumulado', value: c().money(sum(receberHoje)), note: `${receberHoje.length} título(s)`, href: 'contas-receber.html?periodo=hoje' },
+        { label: 'Pagamentos para hoje acumulado', value: c().money(sum(pagarHoje)), note: `${pagarHoje.length} obrigação(ões)`, href: 'contas-pagar.html?periodo=hoje' }
+      ]]
     ];
 
     setContent(`
-      ${hero('Central do Dia', 'Painel operacional da Melo Reparos com prioridades, agenda, financeiro do dia e resumo semanal.', 'Início')}
-      <div class="kpi-link-grid">${kpis.map(kpiLink).join('')}</div>
-      <section class="section">
+      <section class="section home-kpi-areas">${kpiGroups.map(([title, items]) => `<article class="card kpi-area"><div class="section-header"><h3 class="section-title">${title}</h3></div><div class="kpi-link-grid compact-kpis">${items.map(kpiLink).join('')}</div></article>`).join('')}</section>
+      <section class="section long-stage-highlight">
         <div class="section-header"><h3 class="section-title">⚠ Veículos há muito tempo na etapa</h3><a class="btn btn-secondary" href="producao.html?filtro=tempo-etapa">Ver produção</a></div>
         ${longStageTable(longas)}
       </section>
@@ -90,10 +94,6 @@ window.MeloPages = (() => {
       <section class="section">
         <div class="section-header"><h3 class="section-title">Operação do dia</h3><a class="btn btn-secondary" href="agenda.html">Abrir agenda</a></div>
         <div class="day-ops-grid">${dayOperationBlocks().map(operationBlock).join('')}</div>
-      </section>
-      <section class="section">
-        <div class="section-header"><h3 class="section-title">Resumo semanal · segunda a sábado</h3><span class="badge primary">Semana de 08/06 a 13/06</span></div>
-        ${weeklySummary()}
       </section>
     `);
   }
@@ -268,7 +268,7 @@ window.MeloPages = (() => {
   }
 
   function longStageTable(items) {
-    return simpleTable(['Placa', 'Veículo', 'Etapa atual', 'Dias', 'Limite', 'Previsão', 'Condições paralelas'], items.map((item) => [item.vehicle.placa, item.vehicle.modelo, item.etapa.nome, `<strong>${item.dias} dias</strong>`, `${item.limite} dias`, formatDate(item.previsao), item.condicoes.length ? item.condicoes.map((id) => c().statusBadge(byId(data().condicoesParalelas, id).nome)).join(' ') : '<span class="badge success">Sem bloqueio</span>']));
+    return simpleTable(['Placa', 'Veículo', 'Cor', 'Etapa atual', 'Dias', 'Observações'], items.map((item) => [item.vehicle.placa, item.vehicle.modelo, item.vehicle.cor || '—', item.etapa.nome, `<strong>${item.dias} dias</strong>`, item.alerta || 'Acompanhar prazo da etapa.']));
   }
 
   function weeklySummary() {
