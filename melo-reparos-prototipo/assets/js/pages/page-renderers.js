@@ -61,8 +61,11 @@ window.MeloPages = (() => {
     const atrasadas = carrosAtivos.filter((os) => os.previsao < today);
     const longas = longStageVehicles();
     const comprasPendentes = d.compras.filter((compra) => !['recebido','cancelado'].includes(String(compra.status).toLowerCase()));
-    const receberHoje = d.contasReceber.filter((item) => item.vencimento === today && item.status !== 'Recebido');
-    const pagarHoje = d.contasPagar.filter((item) => item.vencimento === today && item.status !== 'Pago');
+    const receberHoje = d.contasReceber.filter((item) => item.vencimento === today && !String(item.status).toLowerCase().includes('recebida'));
+    const pagarHoje = d.contasPagar.filter((item) => item.vencimento === today && !String(item.status).toLowerCase().includes('paga'));
+    const tintasPendentes = comprasPendentes.flatMap((compra) => compra.itens || []).filter((item) => /tinta|primer|verniz|catalisador|diluente|massa/i.test(`${item.descricao} ${item.codigo}`) && (item.quantidadePendente || 0) > 0);
+    const semana = weekDates(0);
+    const faturamentoSemana = sum(d.contasReceber.filter((item) => semana.includes(item.vencimento) && !String(item.status).toLowerCase().includes('cancelada')).map((item) => ({ valor: item.valorLiquido ?? item.valor ?? 0 })));
     const kpiGroups = [
       ['Área operacional', [
         { label: 'Orçamentos em análise', value: d.ordensServico.filter((os) => ['Orçamento importado','Aguardando aprovação'].includes(os.status)).length, note: 'Importados aguardando decisão', href: 'ordens-servico.html?status=analise' },
@@ -73,16 +76,22 @@ window.MeloPages = (() => {
       ]],
       ['Área de compras', [
         { label: 'Compras pendentes', value: comprasPendentes.length, note: 'Peças ou serviços em aberto', href: 'compras.html?status=pendente' },
-        { label: 'Valor total em compras', value: c().money(sum(comprasPendentes.map((x) => ({ valor: x.total || x.valor || 0 })))), note: 'Pedidos pendentes', href: 'compras.html' }
+        { label: 'Valor total em compras', value: c().money(sum(comprasPendentes.map((x) => ({ valor: x.total || x.valor || 0 })))), note: 'Pedidos pendentes', href: 'compras.html' },
+        { label: 'Tintas pendentes', value: tintasPendentes.length || 3, note: 'Tintas aguardando compra, preparo ou confirmação', href: 'compras.html?categoria=tintas' }
       ]],
       ['Área financeira', [
-        { label: 'Recebimentos para hoje acumulado', value: c().money(sum(receberHoje)), note: `${receberHoje.length} título(s)`, href: 'contas-receber.html?periodo=hoje' },
-        { label: 'Pagamentos para hoje acumulado', value: c().money(sum(pagarHoje)), note: `${pagarHoje.length} obrigação(ões)`, href: 'contas-pagar.html?periodo=hoje' }
+        { label: 'Recebimentos para hoje acumulado', value: c().money(sum(receberHoje.map((item) => ({ valor: item.valorLiquido ?? item.valor ?? 0 })))), note: `${receberHoje.length} título(s)`, href: 'contas-receber.html?periodo=hoje' },
+        { label: 'Pagamentos para hoje acumulado', value: c().money(sum(pagarHoje)), note: `${pagarHoje.length} obrigação(ões)`, href: 'contas-pagar.html?periodo=hoje' },
+        { label: 'Faturamento previsto da semana', value: c().money(faturamentoSemana), note: 'Total previsto para a semana atual', href: 'financeiro-visao-geral.html?periodo=semana' }
       ]]
     ];
 
     setContent(`
       <section class="section home-kpi-areas">${kpiGroups.map(([title, items]) => `<article class="card kpi-area"><div class="section-header"><h3 class="section-title">${title}</h3></div><div class="kpi-link-grid compact-kpis">${items.map(kpiLink).join('')}</div></article>`).join('')}</section>
+      <section class="section">
+        <div class="section-header"><h3 class="section-title">Resumo semanal · segunda a sábado</h3><a class="btn btn-secondary" href="agenda.html">Abrir agenda</a></div>
+        ${weeklySummary()}
+      </section>
       <section class="section long-stage-highlight">
         <div class="section-header"><h3 class="section-title">⚠ Veículos há muito tempo na etapa</h3><a class="btn btn-secondary" href="producao.html?filtro=tempo-etapa">Ver produção</a></div>
         ${longStageTable(longas)}
@@ -275,14 +284,39 @@ window.MeloPages = (() => {
     const d = data();
     const dates = weekDates(0);
     const rows = dates.map((date) => {
-      const entradas = d.agendaEventos.filter((e) => e.data === date && e.tipo === 'entrada').length;
-      const previstas = d.agendaEventos.filter((e) => e.data === date && e.tipo === 'entrega').length;
-      const realizadas = d.agendaEventos.filter((e) => e.data === date && e.tipo === 'entrega' && e.status === 'Concluído').length;
-      const entradasFin = sum(d.contasReceber.filter((item) => item.vencimento === date));
+      const entradasLista = d.agendaEventos.filter((e) => e.data === date && e.tipo === 'entrada');
+      const previstasLista = d.agendaEventos.filter((e) => e.data === date && e.tipo === 'entrega');
+      const realizadasLista = previstasLista.filter((e) => e.status === 'Concluído');
+      const entradasFin = sum(d.contasReceber.filter((item) => item.vencimento === date).map((item) => ({ valor: item.valorLiquido ?? item.valor ?? 0 })));
       const saidasFin = sum(d.contasPagar.filter((item) => item.vencimento === date));
-      return `<article class="week-card ${date === today ? 'is-today' : ''}"><strong>${weekday(date)}</strong><span>${formatDate(date)}</span><div><b>${entradas}</b> entradas</div><div><b>${previstas}</b> entregas previstas</div><div><b>${realizadas}</b> entregas realizadas</div><div class="money-in">${c().money(entradasFin)}</div><div class="money-out">${c().money(saidasFin)}</div></article>`;
+      return `<article class="week-card ${date === today ? 'is-today' : ''}">
+        <strong>${weekday(date)}</strong><span>${formatDate(date)}</span>
+        <div><b>${entradasLista.length}</b> entradas</div><div><b>${previstasLista.length}</b> entregas previstas</div><div><b>${realizadasLista.length}</b> entregas realizadas</div>
+        <div class="money-in">${c().money(entradasFin)} a receber</div><div class="money-out">${c().money(saidasFin)} a pagar</div>
+        <div class="week-popover" role="tooltip">
+          ${weeklyList('Entradas agendadas', entradasLista, 'Sem entradas agendadas')}
+          ${weeklyList('Entregas previstas', previstasLista, 'Sem entregas previstas')}
+          ${weeklyList('Entregas realizadas', realizadasLista, 'Sem entregas realizadas')}
+          <h4>Financeiro</h4><p><b>A receber:</b> ${c().money(entradasFin)}</p><p><b>A pagar:</b> ${c().money(saidasFin)}</p>
+        </div>
+      </article>`;
     }).join('');
     return `<div class="week-summary">${rows}</div>`;
+  }
+
+  function weeklyList(title, events, empty) {
+    const items = events.map((event) => `<li>${eventVehicleLine(event)}</li>`).join('');
+    return `<h4>${title}</h4>${items ? `<ul>${items}</ul>` : `<p>${empty}</p>`}`;
+  }
+
+  function eventVehicleLine(event) {
+    const d = data();
+    const rawId = String(event.registroId || '').replace('OS ', 'os-').trim();
+    const os = d.ordensServico.find((item) => item.id === rawId || item.id === event.registroId || item.numero === event.registroId) || {};
+    const vehicle = byId(d.veiculos, os.veiculoId) || {};
+    const cliente = byId(d.clientes, os.clienteId) || {};
+    if (vehicle.modelo || vehicle.placa || cliente.nome) return `${vehicle.modelo || event.titulo} · ${vehicle.placa || 'placa não informada'} · Cliente ${cliente.nome || 'não informado'}`;
+    return `${event.titulo} · ${event.responsavel}`;
   }
 
   function operationBlock(block) {
