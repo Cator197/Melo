@@ -106,6 +106,7 @@ window.MeloMockData = {
     { id: 'FOT-1042-3', osId: 'os-1042', categoria: 'funilaria', legenda: 'Paralama em reparo', data: '2026-06-10', usuario: 'Rafael Santos', cor: '#dcfce7' }
   ],
   observacoesOS: [
+    { id: 'OBS-1042-0', osId: 'os-1042', autor: 'Marina Lopes', dataHora: '2026-06-04T09:05:00', categoria: 'entrada', texto: 'Check-in realizado com fotos iniciais e avarias conferidas na chegada.', fixada: false },
     { id: 'OBS-1042-1', osId: 'os-1042', autor: 'Rafael Santos', dataHora: '2026-06-10T16:20:00', categoria: 'produção', texto: 'Retorno para Funilaria registrado após ajuste de alinhamento no paralama.', fixada: true },
     { id: 'OBS-1042-2', osId: 'os-1042', autor: 'Marina Lopes', dataHora: '2026-06-11T09:10:00', categoria: 'seguradora', texto: 'Seguradora cobrada sobre o complemento COMP-1042-01.', fixada: false },
     { id: 'OBS-1042-3', osId: 'os-1042', autor: 'Caio Dicieri', dataHora: '2026-06-11T11:00:00', categoria: 'alerta interno', texto: 'Não prometer entrega antes da chegada do suporte interno.', fixada: true }

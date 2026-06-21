@@ -404,6 +404,9 @@
   text-transform: uppercase;
 }
 .os-status-kpi { border-width: 1px; }
+.os-status-kpi[data-open-checkin] { cursor: pointer; transition: transform .15s ease, box-shadow .15s ease; }
+.os-status-kpi[data-open-checkin]:hover,
+.os-status-kpi[data-open-checkin]:focus-visible { transform: translateY(-2px); box-shadow: var(--shadow-md); outline: 2px solid var(--color-primary); }
 .os-status-kpi::after { display: none; }
 .new-observation {
   display: grid;
