@@ -265,3 +265,153 @@
 .week-popover li, .week-popover p { margin: 3px 0; color: #f8fafc; font-size: 13px; }
 .week-popover b { color: #fff; }
 @media (max-width: 760px) { .kpi-area .kpi-link-grid { grid-template-columns: 1fr; } .week-card .week-popover { display: none !important; } }
+
+/* Ajustes UX — Detalhe da OS */
+.os-detail-head {
+  grid-template-columns: repeat(auto-fit, minmax(138px, 1fr));
+  align-items: stretch;
+  gap: 12px;
+}
+.os-info-tile {
+  min-height: 118px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: #fff;
+  text-align: center;
+}
+.os-info-tile span:first-child {
+  color: var(--color-muted);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .8px;
+}
+.os-info-tile strong {
+  color: var(--color-primary);
+  font: 900 20px/1.1 var(--font-display);
+  letter-spacing: .5px;
+  overflow-wrap: anywhere;
+}
+.os-info-tile .badge { align-self: center; }
+.status-ok {
+  background: #e8f7ee;
+  border-color: #22c55e;
+  color: #166534;
+}
+.status-warning {
+  background: #fff7db;
+  border-color: #facc15;
+  color: #854d0e;
+}
+.status-danger {
+  background: #ffe4e6;
+  border-color: #ef4444;
+  color: #991b1b;
+}
+.os-info-tile.status-ok strong,
+.os-info-tile.status-warning strong,
+.os-info-tile.status-danger strong,
+.os-status-kpi.status-ok .kpi-value,
+.os-status-kpi.status-warning .kpi-value { color: inherit; }
+.insurance-tile strong { display: grid; place-items: center; }
+.insurance-logo {
+  width: 54px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--color-primary), #38bdf8);
+  color: #fff;
+  font: 900 22px/1 var(--font-display);
+  box-shadow: var(--shadow-sm);
+}
+.insurance-na {
+  min-width: 72px;
+  min-height: 44px;
+  padding: 12px;
+  display: grid;
+  place-items: center;
+  border: 1px dashed var(--color-border);
+  border-radius: 12px;
+  color: var(--color-muted);
+  font: 900 14px/1 var(--font-body);
+  text-transform: uppercase;
+}
+.os-status-kpi { border-width: 1px; }
+.os-status-kpi::after { display: none; }
+.new-observation {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: start;
+  margin-bottom: 14px;
+}
+.new-observation textarea {
+  min-height: 72px;
+  resize: vertical;
+}
+@media (max-width: 620px) {
+  .os-detail-head { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .os-info-tile { min-height: 104px; padding: 12px; }
+  .os-info-tile strong { font-size: 17px; }
+  .new-observation { grid-template-columns: 1fr; }
+}
+@media (max-width: 380px) { .os-detail-head { grid-template-columns: 1fr; } }
+
+/* Refinamento UX — cabeçalho como título + dados operacionais */
+.os-detail-head.strong-os-header {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  padding: 22px 24px;
+  border-left: 6px solid currentColor;
+}
+.os-detail-head.strong-os-header.status-ok { background: linear-gradient(135deg, #e8f7ee 0%, #f8fffb 58%); }
+.os-detail-head.strong-os-header.status-warning { background: linear-gradient(135deg, #fff7db 0%, #fffdf5 58%); }
+.os-detail-title {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--color-primary);
+}
+.os-detail-title span {
+  color: var(--color-muted);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.os-detail-title h2 {
+  margin: 0;
+  color: var(--color-primary);
+  font: 900 clamp(30px, 4vw, 48px)/.95 var(--font-display);
+  letter-spacing: .8px;
+  text-transform: uppercase;
+}
+.os-detail-title strong {
+  color: var(--color-text);
+  font: 900 clamp(20px, 2.4vw, 30px)/1 var(--font-display);
+  letter-spacing: .8px;
+  text-transform: uppercase;
+}
+.os-detail-meta {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(132px, 1fr));
+  gap: 12px;
+}
+.os-detail-meta .os-info-tile {
+  min-height: 104px;
+  background: rgba(255, 255, 255, .82);
+  box-shadow: 0 1px 0 rgba(15, 23, 42, .03);
+}
+@media (max-width: 1180px) { .os-detail-meta { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 680px) {
+  .os-detail-head.strong-os-header { padding: 18px; }
+  .os-detail-meta { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 430px) { .os-detail-meta { grid-template-columns: 1fr; } }
