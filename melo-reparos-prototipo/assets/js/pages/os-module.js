@@ -305,21 +305,29 @@ window.MeloOSModule = (() => {
   function deliveryStatusClass(os) { if (isOverdue(os)) return 'status-danger'; if (os.previsao && daysBetween(today, os.previsao) <= 2 && !closedStatuses.includes(os.status)) return 'status-warning'; return 'status-ok'; }
   function osInfoTile(label, value, cls = '') { return `<div class="os-info-tile ${cls}"><span>${label}</span><strong>${value}</strong></div>`; }
   function insurerLogo(os, tipo) { if (tipo !== 'Seguro') return '<span class="insurance-na">Particular</span>'; const initials = (os.seguradora || 'NA').split(/\s+/).map((word)=>word[0]).join('').slice(0,2).toUpperCase(); return `<span class="insurance-logo" title="${os.seguradora || 'Seguradora'}">${initials || 'NA'}</span>`; }
-  function detailHeader(os) { const v = vehicle(os); const tipo = os.tipoAtendimento?.toLowerCase().includes('segur') ? 'Seguro' : os.tipoAtendimento?.toLowerCase().includes('loj') ? 'Lojista' : 'Particular'; const checks = osChecklist(os); return `<section class="card os-detail-head strong-os-header">${[
-    osInfoTile('Placa', v.placa),
-    osInfoTile('OS', os.numero || os.id),
-    osInfoTile('Veículo', `${v.marca || ''} ${v.modelo}`),
-    osInfoTile('Cor', v.cor || '—'),
-    osInfoTile('Status administrativo', badge(os.status)),
-    osInfoTile('Tipo', tipo),
-    osInfoTile('Seguro', insurerLogo(os, tipo), 'insurance-tile'),
-    osInfoTile('Etapa atual', `<span class="badge primary">${stage(os).nome}</span>`),
-    osInfoTile('Peças', checks.pecasPendentes ? 'Pendente' : 'OK', checks.pecasPendentes ? 'status-warning' : 'status-ok'),
-    osInfoTile('Tinta', checks.tintaPendente ? 'Pendente' : 'OK', checks.tintaPendente ? 'status-warning' : 'status-ok'),
-    osInfoTile('Complemento', checks.compPendente ? 'Pendente' : 'OK', checks.compPendente ? 'status-warning' : 'status-ok'),
-    osInfoTile('Previsão de entrega', fmtDate(os.previsao), deliveryStatusClass(os)),
-    osInfoTile('Valor total', money(os.valor))
-  ].join('')}</section>`; }
+  function detailHeader(os) {
+    const v = vehicle(os);
+    const tipo = os.tipoAtendimento?.toLowerCase().includes('segur') ? 'Seguro' : os.tipoAtendimento?.toLowerCase().includes('loj') ? 'Lojista' : 'Particular';
+    const checks = osChecklist(os);
+    const headerOk = !checks.pecasPendentes && !checks.compPendente && !checks.tintaPendente;
+    const vehicleTitle = [`${v.marca || ''} ${v.modelo || ''}`.trim(), v.cor].filter(Boolean).join(' - ') || 'Veículo não informado';
+    const osTitle = [v.placa || 'Placa não informada', os.numero || os.id].filter(Boolean).join(' - ');
+    return `<section class="card os-detail-head strong-os-header ${headerOk ? 'header-ok' : 'header-warning'}">
+      <div class="os-header-title">
+        <span class="os-header-eyebrow">Ordem de serviço</span>
+        <h2>${vehicleTitle}</h2>
+        <p>${osTitle}</p>
+      </div>
+      <div class="os-header-metrics">${[
+        osInfoTile('Status', badge(os.status)),
+        osInfoTile('Tipo', tipo),
+        osInfoTile('Seguro', insurerLogo(os, tipo), 'insurance-tile'),
+        osInfoTile('Etapa atual', `<span class="badge primary">${stage(os).nome}</span>`),
+        osInfoTile('Previsão de entrega', fmtDate(os.previsao), deliveryStatusClass(os)),
+        osInfoTile('Valor total', money(os.valor))
+      ].join('')}</div>
+    </section>`;
+  }
 
   function summary(os) { const v = vehicle(os), cl = client(os); return `<details open><summary>Resumo da OS</summary><h4>Identificação</h4><dl><dt>Cliente</dt><dd>${cl.nome}</dd><dt>Telefone</dt><dd>${cl.telefone}</dd><dt>Veículo</dt><dd>${v.marca || ''} ${v.modelo}</dd><dt>Placa</dt><dd>${v.placa}</dd><dt>Cor / ano</dt><dd>${v.cor} · ${v.ano}</dd><dt>Seguradora</dt><dd>${os.seguradora}</dd><dt>Sinistro</dt><dd>${os.sinistro}</dd><dt>Orçamento</dt><dd>${os.numeroOrcamento}</dd><dt>Origem</dt><dd>${os.origem}</dd></dl><h4>Datas</h4><dl><dt>Aprovação</dt><dd>${fmtDate(os.aprovacao)}</dd><dt>Entrada prevista</dt><dd>${fmtDate(os.entradaPrevista)}</dd><dt>Entrada real</dt><dd>${fmtDate(os.entrada)}</dd><dt>Previsão inicial</dt><dd>${fmtDate(os.previsaoInicial)}</dd><dt>Previsão atual</dt><dd>${fmtDate(os.previsao)}</dd><dt>Entrega real</dt><dd>${fmtDate(os.entregaReal)}</dd></dl><h4>Situação</h4><dl><dt>Status</dt><dd>${os.status}</dd><dt>Etapa</dt><dd>${stage(os).nome}</dd><dt>Condições</dt><dd>${condBadges(os)}</dd><dt>Dias na etapa</dt><dd>${daysBetween(os.etapaEntrada)} dias</dd><dt>Dias na oficina</dt><dd>${daysBetween(os.entrada)} dias</dd></dl></details>`; }
   function tabs() { const items = [['visao','Visão geral'],['producao','Produção'],['servicos','Serviços e peças'],['complementos','Complementos'],['compras','Compras'],['financeiro','Financeiro'],['documentos','Documentos e fotos'],['entregas','Entregas'],['historico','Histórico']]; return `<div class="tabs os-tabs">${items.map(([id,label]) => `<button class="tab" data-tab="${id}" type="button">${label}</button>`).join('')}</div>`; }
