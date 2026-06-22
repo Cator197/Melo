@@ -313,13 +313,22 @@ window.MeloOSModule = (() => {
     const tipo = os.tipoAtendimento?.toLowerCase().includes('segur') ? 'Seguro' : os.tipoAtendimento?.toLowerCase().includes('loj') ? 'Lojista' : 'Particular';
     const checks = osChecklist(os);
     const headerOk = !checks.checkinPendente && !checks.pecasPendentes && !checks.compPendente && !checks.tintaPendente;
-    const vehicleTitle = [`${v.marca || ''} ${v.modelo || ''}`.trim(), v.cor].filter(Boolean).join(' - ') || 'Veículo não informado';
-    const osTitle = [v.placa || 'Placa não informada', os.numero || os.id].filter(Boolean).join(' - ');
+    const vehicleName = `${v.marca || ''} ${v.modelo || ''}`.trim() || 'Veículo não informado';
+    const vehicleMeta = [v.ano, v.cor].filter(Boolean).join(' · ');
+    const vehicleTitle = [vehicleName, vehicleMeta].filter(Boolean).join(' · ');
+    const plateTitle = v.placa || 'Placa não informada';
+    const osTitle = os.numero || os.id || 'OS não informada';
     return `<section class="card os-detail-head strong-os-header ${headerOk ? 'header-ok' : 'header-warning'}">
-      <div class="os-header-title">
-        <span class="os-header-eyebrow">Ordem de serviço</span>
-        <h2>${vehicleTitle}</h2>
-        <p>${osTitle}</p>
+      <div class="os-header-main">
+        <div class="os-header-title">
+          <span class="os-header-eyebrow">Veículo</span>
+          <h2>${vehicleTitle}</h2>
+          <p>${plateTitle}</p>
+        </div>
+        <div class="os-header-number">
+          <span>OS</span>
+          <strong>${osTitle}</strong>
+        </div>
       </div>
       <div class="os-header-metrics">${[
         osInfoTile('Status', badge(os.status)),
