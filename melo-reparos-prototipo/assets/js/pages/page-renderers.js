@@ -97,12 +97,12 @@ window.MeloPages = (() => {
         ${longStageTable(longas)}
       </section>
       <section class="section">
-        <div class="section-header"><h3 class="section-title">Alertas prioritários</h3><span class="badge danger">${homeAlerts().filter((a) => a.priority === 'Alta').length} alta prioridade</span></div>
-        <div class="alert-list">${homeAlerts().map(alertCard).join('')}</div>
-      </section>
-      <section class="section">
         <div class="section-header"><h3 class="section-title">Operação do dia</h3><a class="btn btn-secondary" href="agenda.html">Abrir agenda</a></div>
         <div class="day-ops-grid">${dayOperationBlocks().map(operationBlock).join('')}</div>
+      </section>
+      <section class="section">
+        <div class="section-header"><h3 class="section-title">Alertas prioritários</h3><span class="badge danger">${homeAlerts().filter((a) => a.priority === 'Alta').length} alta prioridade</span></div>
+        <div class="alert-list">${homeAlerts().map(alertCard).join('')}</div>
       </section>
     `);
   }

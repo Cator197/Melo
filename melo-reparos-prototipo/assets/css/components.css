@@ -241,13 +241,14 @@
 /* Kanban de Produção — cards compactos e clicáveis */
 .prod-card[data-os-link]{position:relative;cursor:pointer;padding:.65rem .65rem .7rem;border-left:4px solid var(--color-success);transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease;background:#fff}.prod-card[data-os-link]:hover,.prod-card[data-os-link]:focus-visible{transform:translateY(-1px);box-shadow:var(--shadow-md);outline:0}.prod-card[data-os-link] header{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-bottom:.25rem}.prod-card[data-os-link] header strong{font-family:var(--font-display);font-size:1.14rem;line-height:1;letter-spacing:.05em;color:var(--color-text)}.prod-card[data-os-link] header span{font-size:.72rem;font-weight:900;text-transform:uppercase;color:var(--color-text);white-space:nowrap}.prod-card[data-os-link] h4{margin:.15rem 0 .2rem;font-size:.86rem;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.prod-card[data-os-link] p{margin:.2rem 0;color:var(--color-text);font-size:.76rem;line-height:1.25}.prod-card[data-os-link] .prod-delivery{margin-top:.42rem;font-weight:800}.prod-status{display:flex;gap:.28rem;align-items:center;margin:.45rem 0 .25rem}.status-square{width:1.45rem;height:1.45rem;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;font-size:.86rem;font-weight:900;line-height:1;border:1px solid rgba(0,0,0,.08);box-shadow:inset 0 -1px 0 rgba(0,0,0,.08)}.status-square.ok{background:#dcfce7;color:#166534}.status-square.warn{background:#fef3c7;color:#92400e}.prod-card.entrega-atrasada[data-os-link]{background:#fff1f2;border-color:#dc2626;box-shadow:0 0 0 1px rgba(220,38,38,.2),var(--shadow-sm)}.prod-card.entrega-atrasada[data-os-link] header strong,.prod-card.entrega-atrasada[data-os-link] header span,.prod-card.entrega-atrasada[data-os-link] h4,.prod-card.entrega-atrasada[data-os-link] p{color:#7f1d1d}.prod-card-tooltip{position:absolute;z-index:25;left:.45rem;right:.45rem;top:calc(100% - .2rem);display:none;background:#111827;color:#fff;border-radius:12px;padding:.7rem;box-shadow:0 16px 35px rgba(15,23,42,.24);font-size:.75rem;line-height:1.35;pointer-events:none}.prod-card:hover .prod-card-tooltip,.prod-card:focus-visible .prod-card-tooltip{display:block}.prod-card-tooltip p{color:#fff!important;margin:.2rem 0!important}.prod-card-tooltip ul{margin:.15rem 0 .4rem 1rem;padding:0}.prod-card-tooltip li{margin:.12rem 0}.prod-card-tooltip b{color:#fde68a}.kanban-column{overflow:visible}.kanban-board{align-items:start}.prod-card footer{display:none!important}@media (max-width:700px){.prod-card-tooltip{display:none!important}.prod-card[data-os-link]{min-height:auto}.status-square{width:1.6rem;height:1.6rem}}
 
-/* Página Início — cards gerenciais em áreas empilhadas e resumo semanal */
-.home-kpi-areas { grid-template-columns: 1fr !important; align-items: stretch; }
-.kpi-area { width: 100%; overflow: visible; }
-.kpi-area .section-header { margin-bottom: 14px; }
-.kpi-area .kpi-link-grid { grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; }
-.kpi-link.kpi-card { min-height: 148px; display: flex; flex-direction: column; justify-content: flex-start; gap: 8px; padding: 18px; padding-top: 18px; isolation: isolate; }
-.kpi-link.kpi-card::after { width: 74px; height: 74px; opacity: .55; z-index: 0; pointer-events: none; }
+/* Página Início — cards gerenciais compactos e resumo semanal */
+.home-kpi-areas { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+.home-kpi-areas .kpi-area:first-child { grid-column: 1 / -1; max-width: 860px; }
+.kpi-area { width: 100%; overflow: visible; padding: 16px; }
+.kpi-area .section-header { margin-bottom: 10px; }
+.kpi-area .kpi-link-grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.kpi-link.kpi-card { min-height: 104px; display: flex; flex-direction: column; justify-content: flex-start; gap: 5px; padding: 12px; padding-top: 12px; isolation: isolate; }
+.kpi-link.kpi-card::after { width: 52px; height: 52px; opacity: .45; z-index: 0; pointer-events: none; }
 .kpi-link.kpi-card > * { position: relative; z-index: 1; }
 .kpi-link .kpi-label { max-width: calc(100% - 42px); line-height: 1.25; color: var(--color-text); }
 .kpi-link .kpi-value { margin: 2px 0 0; overflow-wrap: anywhere; }
@@ -264,6 +265,7 @@
 .week-popover ul { margin: 0 0 8px 18px; padding: 0; }
 .week-popover li, .week-popover p { margin: 3px 0; color: #f8fafc; font-size: 13px; }
 .week-popover b { color: #fff; }
+@media (max-width: 900px) { .home-kpi-areas { grid-template-columns: 1fr; } .home-kpi-areas .kpi-area:first-child { max-width: none; } }
 @media (max-width: 760px) { .kpi-area .kpi-link-grid { grid-template-columns: 1fr; } .week-card .week-popover { display: none !important; } }
 
 /* Ajustes UX — Detalhe da OS */
