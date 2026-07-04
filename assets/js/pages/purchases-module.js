@@ -46,36 +46,60 @@ window.MeloPurchasesModule = (() => {
     });
   }
 
-  function pageHero(title, desc, actions = '') {
-    return `<nav class="breadcrumb"><a href="inicio.html">Início</a><span>›</span><span>Compras</span><span>›</span><strong>${title}</strong></nav><section class="hero"><div><h2>${title}</h2><p>${desc}</p></div><div class="hero-actions">${actions}</div></section>`;
-  }
-
   function renderList() {
     syncOsCosts();
     const root = document.querySelector('[data-page-content]');
-    const actions = '<a class="btn btn-primary" href="compra-detalhes.html?new=1">Nova compra</a><button class="btn btn-secondary" data-export>Exportar</button>';
-    root.innerHTML = `${pageHero('Pedidos de compra', 'Controle de pedidos, itens, fornecedores, recebimentos e vínculos com OS.', actions)}${indicators()}<section class="section compras-page card" data-compras-root>${filters()}${viewToggle()}<div class="active-tags" data-active-tags></div><div data-results></div></section>${modals()}`;
+    root.innerHTML = `<section class="section compras-page purchase-command-page" data-compras-root>${commandCenter()}${filters()}${priorityBlock()}${indicators()}<article class="card purchase-list-card"><div class="section-header"><div><h3 class="section-title">Pedidos de compra</h3><p class="muted">Lista completa para consulta, conferência e auditoria.</p></div><span data-count></span></div><div class="active-tags" data-active-tags></div><div data-results></div></article></section>${modals()}`;
     bindList(root);
     refresh(root);
+  }
+  function commandCenter() {
+    return `<div class="card production-command purchase-command"><div class="production-command-copy"><span class="home-date">Compras hoje</span><h2>Destravar OS por suprimentos</h2><p>Comece pelas compras que bloqueiam produção, recebimento ou financeiro; depois consulte pedidos, itens e fornecedores.</p><div class="production-command-meta"><span data-filter-note>Nenhum filtro aplicado.</span><span>Atualizado às <b data-last-update>09:42</b></span><span class="badge warning">Protótipo operacional</span></div></div><div class="production-command-controls"><div class="view-toggle" aria-label="Alternar visão de compras"><button class="tab ${state.view === 'pedidos' ? 'active' : ''}" data-view="pedidos">Pedidos</button><button class="tab ${state.view === 'itens' ? 'active' : ''}" data-view="itens">Itens</button><button class="tab ${state.view === 'fornecedores' ? 'active' : ''}" data-view="fornecedores">Fornecedores</button></div><div class="hero-actions"><a class="btn btn-primary" href="compra-detalhes.html?new=1">Nova compra</a><a class="btn btn-secondary" href="itens-pendentes.html">Itens pendentes</a><button class="btn btn-secondary" type="button" data-toggle-filters>Filtros</button><button class="btn btn-secondary" type="button" data-export>Exportar</button></div></div></div>`;
   }
   function metrics() {
     const compras = d().compras, items = allItems();
     return [
-      { id:'abertas', label:'Compras em aberto', value:compras.filter((p) => !['recebido','cancelado','devolvido'].includes(slug(p.status))).length, note:'pedidos não concluídos' },
-      { id:'itens-aguardando', label:'Itens aguardando compra', value:items.filter((i) => ['solicitado','não comprado'].includes(slug(i.status))).length, note:'solicitados ou sem fornecedor' },
-      { id:'entrega', label:'Pedidos aguardando entrega', value:compras.filter((p) => p.statusRecebimento === 'pendente').length, note:'sem recebimento' },
-      { id:'itens-atrasados', label:'Itens atrasados', value:items.filter(isLateItem).length, note:'pendentes fora do prazo' },
-      { id:'veiculos-peca', label:'Veículos aguardando peças', value:d().ordensServico.filter((o) => (o.condicoes || []).includes('CON-01')).length, note:'condição paralela' },
-      { id:'pecas-sem-pedido', label:'Peças sem pedidos', value:items.filter((i) => ['solicitado','não comprado'].includes(slug(i.status)) || !i.compra.fornecedorId || ['rascunho','aguardando compra'].includes(slug(i.compra.status))).length, note:'sem pedido confirmado' },
-      { id:'valor-aberto', label:'Valor total em aberto', value:money(compras.filter((p) => !['recebido','cancelado','devolvido'].includes(slug(p.status))).reduce((s, p) => s + Number(p.valor || 0), 0)), note:'pedidos não concluídos' }
+      { id:'itens-atrasados', group:'Bloqueios operacionais', label:'Itens atrasados', value:items.filter(isLateItem).length, note:'fora do prazo' },
+      { id:'pecas-sem-pedido', group:'Bloqueios operacionais', label:'Peças sem pedido', value:items.filter((i) => ['solicitado','não comprado'].includes(slug(i.status)) || !i.compra.fornecedorId || ['rascunho','aguardando compra'].includes(slug(i.compra.status))).length, note:'sem compra efetiva' },
+      { id:'veiculos-peca', group:'Bloqueios operacionais', label:'Veículos aguardando peças', value:d().ordensServico.filter((o) => (o.condicoes || []).includes('CON-01')).length, note:'condição paralela' },
+      { id:'entrega', group:'Follow-up fornecedor', label:'Aguardando entrega', value:compras.filter((p) => p.statusRecebimento === 'pendente').length, note:'sem recebimento' },
+      { id:'itens-aguardando', group:'Follow-up fornecedor', label:'Itens aguardando compra', value:items.filter((i) => ['solicitado','não comprado'].includes(slug(i.status))).length, note:'solicitados' },
+      { id:'abertas', group:'Risco financeiro', label:'Compras em aberto', value:compras.filter((p) => !['recebido','cancelado','devolvido'].includes(slug(p.status))).length, note:'não concluídas' },
+      { id:'valor-aberto', group:'Risco financeiro', label:'Valor em aberto', value:money(compras.filter((p) => !['recebido','cancelado','devolvido'].includes(slug(p.status))).reduce((s, p) => s + Number(p.valor || 0), 0)), note:'total pendente' }
     ];
   }
-  function indicators() { return `<section class="section"><div class="grid compras-kpis compact-kpis">${metrics().map((k) => `<button class="card kpi-card indicator-button ${state.indicator === k.id ? 'active' : ''}" data-indicator="${k.id}"><div class="kpi-label">${k.label}</div><div class="kpi-value">${k.value}</div><div class="kpi-note">${k.note}</div></button>`).join('')}</div><div class="active-filter" data-indicator-note>${state.indicator ? `Filtro por indicador: ${state.indicator}` : 'Nenhum indicador aplicado.'}</div></section>`; }
-  function viewToggle() { return `<div class="toolbar compras-toolbar"><div class="view-toggle"><button class="tab ${state.view === 'pedidos' ? 'active' : ''}" data-view="pedidos">Pedidos</button><button class="tab ${state.view === 'itens' ? 'active' : ''}" data-view="itens">Itens</button><button class="tab ${state.view === 'fornecedores' ? 'active' : ''}" data-view="fornecedores">Fornecedores</button></div><span data-count></span></div>`; }
+  function indicators() {
+    const groups = metrics().reduce((acc, item) => { (acc[item.group] ||= []).push(item); return acc; }, {});
+    return `<details class="card production-insights purchase-insights"><summary>Indicadores de compras <span data-indicator-note>${state.indicator ? `Filtro: ${state.indicator}` : 'Sem indicador ativo'}</span></summary><div class="purchase-metric-groups">${Object.entries(groups).map(([group, items]) => `<section><h4>${group}</h4><div class="production-metric-row">${items.map((k) => `<button class="production-metric indicator-button ${state.indicator === k.id ? 'is-active active' : ''}" data-indicator="${k.id}"><span>${k.label}</span><b>${k.value}</b><small>${k.note}</small></button>`).join('')}</div></section>`).join('')}</div></details>`;
+  }
+  function purchaseRisks(compra) {
+    const risks = [];
+    const lateItems = compra.itens.filter((it) => isLateItem(it, compra));
+    const noSupplier = !compra.fornecedorId || compra.itens.some((it) => ['solicitado','não comprado'].includes(slug(it.status)));
+    const noOs = compra.itens.some((it) => !itemOsIds(it).length);
+    const partial = compra.statusRecebimento?.includes('parcial') || compra.itens.some((it) => itemPending(it) > 0 && (it.quantidadeRecebida || 0) > 0);
+    if (lateItems.length || isLateCompra(compra)) risks.push({ label:'Entrega vencida', level:'danger', score:40, detail:`${lateItems.length || compra.itens.length} item(ns) impactados` });
+    if (noSupplier) risks.push({ label:'Sem fornecedor/pedido', level:'warning', score:32, detail:'compra ainda não confirmada' });
+    if (noOs) risks.push({ label:'Sem vínculo com OS', level:'warning', score:24, detail:'rateio operacional incompleto' });
+    if (compra.necessitaContaPagar && !compra.contaPagarId && !isCanceled(compra)) risks.push({ label:'Sem conta a pagar', level:'warning', score:20, detail:'financeiro pendente' });
+    if (partial) risks.push({ label:'Recebimento parcial', level:'warning', score:16, detail:'conferir saldo pendente' });
+    return risks;
+  }
+  function priorityRows() {
+    return d().compras.map((compra) => {
+      const risks = purchaseRisks(compra);
+      const score = risks.reduce((sum, risk) => sum + risk.score, 0);
+      return { compra, risks, score };
+    }).filter((item) => item.score > 0).sort((a, b) => b.score - a.score).slice(0, 5);
+  }
+  function priorityBlock() {
+    const rows = priorityRows();
+    return `<article class="card critical-block purchase-critical"><div class="section-header"><h3>Prioridade de suprimentos</h3><small>${rows.length ? `${rows.length} compra(s) pedem decisão agora` : 'Nenhum bloqueio crítico nos filtros atuais'}</small></div>${rows.map(({ compra, risks }) => `<div class="critical-row purchase-critical-row"><b>${compra.pedido}</b><span>${supplier(compra.fornecedorId).nome}<small>${compra.osIds.length ? osLinks(compra.osIds) : 'Sem OS vinculada'}</small></span><span>Previsão ${fmt(compra.previsaoEntrega)} · ${money(compra.valor)}</span><span class="prod-alert-tags">${risks.map((risk) => `<span class="${risk.level}">${risk.label}</span>`).join('')}</span><small>${risks[0]?.detail || 'Revisar compra'}</small><a class="btn btn-small" href="compra-detalhes.html?id=${compra.id}">Resolver</a></div>`).join('') || '<p>Sem compras críticas para destacar.</p>'}</article>`;
+  }
   function filters() {
     const fornecedores = d().fornecedores.map((f) => `<option value="${f.id}">${f.nome}</option>`).join('');
     const responsaveis = [...new Set(d().compras.map((p) => p.responsavel))].map((r) => `<option>${r}</option>`).join('');
-    return `<section class="os-filter-card purchase-filter-card"><div class="section-header"><h3 class="section-title">Pedidos de compras</h3><button class="btn btn-secondary os-filter-toggle" type="button" data-toggle-filters>Filtros</button></div><form class="filters-card os-filters is-collapsed" data-filters><label class="form-field"><span>Pesquisa livre</span><input class="input" name="q" placeholder="pedido, item, fornecedor, OS, placa, veículo, código"></label><label class="form-field"><span>Número do pedido</span><input class="input" name="pedido"></label><label class="form-field"><span>Descrição do item</span><input class="input" name="item"></label><label class="form-field"><span>Código da peça</span><input class="input" name="codigo"></label><label class="form-field"><span>Fornecedor</span><select class="select" name="fornecedor"><option value="">Todos</option>${fornecedores}</select></label><label class="form-field"><span>Número da OS</span><input class="input" name="os"></label><label class="form-field"><span>Placa</span><input class="input" name="placa"></label><label class="form-field"><span>Veículo</span><input class="input" name="veiculo"></label><label class="form-field"><span>Status pedido</span><select class="select" name="status"><option value="">Todos</option><option>rascunho</option><option>aguardando compra</option><option>pedido realizado</option><option>parcialmente recebido</option><option>recebido</option><option>devolução parcial</option><option>devolvido</option><option>cancelado</option></select></label><label class="form-field"><span>Status item</span><select class="select" name="statusItem"><option value="">Todos</option><option>solicitado</option><option>não comprado</option><option>pedido</option><option>parcialmente recebido</option><option>recebido</option><option>devolvido parcialmente</option><option>devolvido</option><option>cancelado</option></select></label><label class="form-field"><span>Status financeiro</span><select class="select" name="financeiro"><option value="">Todos</option><option>lançamento não necessário</option><option>lançamento pendente</option><option>conta a pagar criada</option><option>parcialmente pago</option><option>pago</option><option>lançamento cancelado</option></select></label><label class="form-field"><span>Compra de</span><input class="input" type="date" name="de"></label><label class="form-field"><span>Compra até</span><input class="input" type="date" name="ate"></label><label class="form-field"><span>Previsão até</span><input class="input" type="date" name="previsao"></label><label class="form-field"><span>Responsável</span><select class="select" name="responsavel"><option value="">Todos</option>${responsaveis}</select></label><label class="check-field"><input type="checkbox" name="atrasados" value="sim"> Atrasados</label><label class="check-field"><input type="checkbox" name="parcial" value="sim"> Recebimento parcial</label><label class="check-field"><input type="checkbox" name="semConta" value="sim"> Sem conta a pagar</label><div class="filter-actions"><button class="btn btn-primary" type="submit">Aplicar filtros</button><button class="btn btn-secondary" type="button" data-clear>Limpar filtros</button></div></form></section>`;
+    return `<form class="card filters-panel purchase-filters is-collapsed" data-filters><div class="section-header"><div><h3>Filtros operacionais</h3><p class="muted">Use o básico para decidir rápido; abra o avançado para auditoria.</p></div><button class="btn btn-secondary" type="button" data-clear>Limpar</button></div><div class="form-grid"><label class="form-field"><span>Pesquisa livre</span><input class="input" name="q" placeholder="pedido, item, fornecedor, OS, placa"></label><label class="form-field"><span>Fornecedor</span><select class="select" name="fornecedor"><option value="">Todos</option>${fornecedores}</select></label><label class="form-field"><span>Status pedido</span><select class="select" name="status"><option value="">Todos</option><option>rascunho</option><option>aguardando compra</option><option>pedido realizado</option><option>parcialmente recebido</option><option>recebido</option><option>devolução parcial</option><option>devolvido</option><option>cancelado</option></select></label><label class="check-field"><input type="checkbox" name="atrasados" value="sim"> Atrasados</label></div><details class="purchase-advanced-filters"><summary>Filtros avançados</summary><div class="form-grid"><label class="form-field"><span>Número do pedido</span><input class="input" name="pedido"></label><label class="form-field"><span>Descrição do item</span><input class="input" name="item"></label><label class="form-field"><span>Código da peça</span><input class="input" name="codigo"></label><label class="form-field"><span>Número da OS</span><input class="input" name="os"></label><label class="form-field"><span>Placa</span><input class="input" name="placa"></label><label class="form-field"><span>Veículo</span><input class="input" name="veiculo"></label><label class="form-field"><span>Status item</span><select class="select" name="statusItem"><option value="">Todos</option><option>solicitado</option><option>não comprado</option><option>pedido</option><option>parcialmente recebido</option><option>recebido</option><option>devolvido parcialmente</option><option>devolvido</option><option>cancelado</option></select></label><label class="form-field"><span>Status financeiro</span><select class="select" name="financeiro"><option value="">Todos</option><option>lançamento não necessário</option><option>lançamento pendente</option><option>conta a pagar criada</option><option>parcialmente pago</option><option>pago</option><option>lançamento cancelado</option></select></label><label class="form-field"><span>Compra de</span><input class="input" type="date" name="de"></label><label class="form-field"><span>Compra até</span><input class="input" type="date" name="ate"></label><label class="form-field"><span>Previsão até</span><input class="input" type="date" name="previsao"></label><label class="form-field"><span>Responsável</span><select class="select" name="responsavel"><option value="">Todos</option>${responsaveis}</select></label><label class="check-field"><input type="checkbox" name="parcial" value="sim"> Recebimento parcial</label><label class="check-field"><input type="checkbox" name="semConta" value="sim"> Sem conta a pagar</label></div></details><div class="filter-actions"><button class="btn btn-primary" type="submit">Aplicar filtros</button></div></form>`;
   }
   function filteredPurchases() {
     const f = state.filters;
@@ -117,7 +141,9 @@ window.MeloPurchasesModule = (() => {
     root.querySelector('[data-count]').textContent = `${purchases.length} compra(s) encontrada(s)`;
     root.querySelector('[data-results]').innerHTML = state.view === 'itens' ? itemsView(purchases) : state.view === 'fornecedores' ? suppliersView(purchases) : ordersView(purchases);
     activeTags(root);
-    root.querySelector('[data-indicator-note]').textContent = state.indicator ? `Filtro aplicado por indicador: ${state.indicator}` : 'Nenhum indicador aplicado.';
+    const activeCount = Object.values(state.filters).filter(Boolean).length + (state.indicator ? 1 : 0);
+    root.querySelector('[data-filter-note]').textContent = activeCount ? `${activeCount} filtro(s) aplicado(s)` : 'Nenhum filtro aplicado.';
+    root.querySelector('[data-indicator-note]').textContent = state.indicator ? `Filtro: ${state.indicator}` : 'Sem indicador ativo';
   }
   function ordersView(purchases) {
     const rows = purchases.map((p) => [ `<a href="compra-detalhes.html?id=${p.id}"><b>${p.pedido}</b></a>`, supplier(p.fornecedorId).nome, fmt(p.dataCompra), p.itens.length, osLinks(p.osIds), money(p.valor), fmt(p.previsaoEntrega), badge(p.statusRecebimento), badge(p.statusFinanceiro), isLateCompra(p) ? '<span class="badge danger">Atrasado</span>' : '<span class="badge success">No prazo</span>', p.responsavel ]);
@@ -147,13 +173,13 @@ window.MeloPurchasesModule = (() => {
     const tags = [];
     if (state.indicator) tags.push(`<button data-clear-indicator>Indicador: ${state.indicator} ×</button>`);
     Object.entries(state.filters).filter(([,v]) => v).forEach(([k,v]) => tags.push(`<button data-remove-filter="${k}">${k}: ${v === 'sim' ? 'sim' : esc(v)} ×</button>`));
-    root.querySelector('[data-active-tags]').innerHTML = tags.join('') || '<span>Nenhum filtro ativo.</span>';
+    root.querySelector('[data-active-tags]').innerHTML = tags.join('') || '<span>Lista sem filtros ativos.</span>';
   }
   function bindList(root) {
     root.addEventListener('click', (e) => {
       const btn = e.target.closest('button, a'); if (!btn || btn.disabled) return;
       if (btn.matches('[data-view]')) { state.view = btn.dataset.view; localStorage.setItem('melo-compras-view', state.view); renderList(); }
-      if (btn.matches('[data-indicator]')) { state.indicator = state.indicator === btn.dataset.indicator ? '' : btn.dataset.indicator; root.querySelectorAll('[data-indicator]').forEach((b) => b.classList.toggle('active', b === btn && state.indicator)); refresh(root); }
+      if (btn.matches('[data-indicator]')) { state.indicator = state.indicator === btn.dataset.indicator ? '' : btn.dataset.indicator; root.querySelectorAll('[data-indicator]').forEach((b) => { const selected = b === btn && state.indicator; b.classList.toggle('active', selected); b.classList.toggle('is-active', selected); }); refresh(root); }
       if (btn.matches('[data-toggle-filters]')) root.querySelector('[data-filters]').classList.toggle('is-collapsed');
       if (btn.matches('[data-clear-indicator]')) { state.indicator = ''; refresh(root); }
       if (btn.matches('[data-remove-filter]')) { delete state.filters[btn.dataset.removeFilter]; const field = root.querySelector(`[name="${btn.dataset.removeFilter}"]`); if (field) field.type === 'checkbox' ? field.checked = false : field.value = ''; refresh(root); }

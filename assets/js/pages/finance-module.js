@@ -62,8 +62,8 @@ window.MeloFinanceModule = (() => {
     ];
   }
 
-  function header(title, desc, actions = '') {
-    return `<section class="hero"><div><span class="eyebrow">Financeiro › ${title}</span><h2>${title}</h2><p>${desc}</p><p class="muted">Período selecionado: <strong data-period-label>01/06/2026 a 30/06/2026</strong> · Última atualização fictícia: 12/06/2026 10:42</p></div><div class="hero-actions">${actions}<button class="btn btn-secondary" data-export>Exportar</button></div></section>`;
+  function header(title, desc, actions = '', crumb = title) {
+    return `<section class="hero"><div><span class="eyebrow">Financeiro › ${crumb}</span><h2>${title}</h2><p>${desc}</p><p class="muted">Período selecionado: <strong data-period-label>01/06/2026 a 30/06/2026</strong> · Última atualização fictícia: 12/06/2026 10:42</p></div><div class="hero-actions">${actions}<button class="btn btn-secondary" data-export>Exportar</button></div></section>`;
   }
 
   function periodFilters() {
@@ -94,12 +94,58 @@ window.MeloFinanceModule = (() => {
     const weekBuckets = dueBuckets(week.start, week.end);
     const overdueBuckets = overdueTotals();
     const saldo = balanceSnapshot(m);
-    return `${header('Financeiro', 'Visão geral de contas, parcelas, vencimentos, fluxo de caixa e rentabilidade da Melo Reparos.', '<button class="btn btn-primary" data-open-fin-modal="receber">Nova conta a receber</button><button class="btn btn-secondary" data-open-fin-modal="pagar">Nova conta a pagar</button><button class="btn btn-secondary" data-open-fin-modal="baixa">Registrar baixa</button>')}${periodFilters()}${kpis([
+    return `${header('Visão geral', 'Central financeira para decidir cobranças, pagamentos, baixas e fechamentos sem perder o contexto do caixa.', '<button class="btn btn-primary" data-open-fin-modal="baixa">Registrar baixa</button><button class="btn btn-secondary" data-open-fin-modal="receber">Nova conta a receber</button><button class="btn btn-secondary" data-open-fin-modal="pagar">Nova conta a pagar</button>', 'Visão geral')}${financeDecisionQueue(todayBuckets, overdueBuckets, saldo)}${periodFilters()}${kpis([
       {label:'Saldo previsto', value:money(saldo.previsto), note:'Saldo inicial + previsto do período', kind:'resultado'},
       {label:'Saldo realizado', value:money(saldo.realizado), note:'Saldo inicial + baixas do período', kind:'realizado'},
       {label:'A receber em aberto', value:money(saldo.receberAberto), note:'Saldo pendente de recebíveis', kind:'previsto', filter:'receber-aberto'},
       {label:'A pagar em aberto', value:money(saldo.pagarAberto), note:'Saldo pendente de obrigações', kind:'previsto', filter:'pagar-aberto'}
-    ])}${periodSummary(m)}${overviewAreas(todayBuckets, weekBuckets, overdueBuckets)}${priorityAlerts()}${weeklyVehicleRevenue(week)}${upcomingLists()}${financeModalMarkup()}`;
+    ])}${periodSummary(m)}${overviewAreas(todayBuckets, weekBuckets, overdueBuckets)}${priorityAlerts()}${supportingFinanceDetails(week)}${financeModalMarkup()}`;
+  }
+
+  function financeDecisionQueue(todayBuckets, overdueBuckets, saldo) {
+    const osPendentes = d().rentabilidadeOS.filter((r)=>!String(r.statusFinanceiro || '').toLowerCase().includes('fechada'));
+    const comprasSemConta = d().compras.filter((x)=>x.necessitaContaPagar && !x.contaPagarId && !String(x.status || '').toLowerCase().includes('cancel'));
+    const balanceToday = todayBuckets.receber - todayBuckets.pagar;
+    const decisions = [
+      {
+        tone: overdueBuckets.rec.length || overdueBuckets.pag.length ? 'danger' : 'stable',
+        label: 'Cobrar ou pagar vencidas',
+        title: `${overdueBuckets.rec.length + overdueBuckets.pag.length} pendência(s) vencida(s)`,
+        text: `${money(overdueBuckets.receber)} a receber e ${money(overdueBuckets.pagar)} a pagar em atraso.`,
+        meta: 'Responsável sugerido: financeiro',
+        action: 'Ver vencidas',
+        href: 'contas-receber.html?filtro=vencidas'
+      },
+      {
+        tone: balanceToday < 0 ? 'warning' : 'stable',
+        label: 'Conferir caixa de hoje',
+        title: `Saldo do dia ${money(balanceToday)}`,
+        text: `${money(todayBuckets.receber)} de entradas contra ${money(todayBuckets.pagar)} de saídas.`,
+        meta: `Saldo realizado do mês: ${money(saldo.realizado)}`,
+        action: 'Registrar baixa',
+        modal: 'baixa'
+      },
+      {
+        tone: osPendentes.length ? 'warning' : 'stable',
+        label: 'Fechar OS finalizadas',
+        title: `${osPendentes.length} OS sem fechamento financeiro`,
+        text: 'Valide recebimentos, custos e ressalvas antes do fechamento.',
+        meta: osPendentes.slice(0, 2).map((x)=>osLabel(x.osId)).join(', ') || 'Sem pendências de fechamento',
+        action: 'Abrir rentabilidade',
+        href: 'rentabilidade.html'
+      },
+      {
+        tone: comprasSemConta.length ? 'warning' : 'stable',
+        label: 'Gerar contas de compras',
+        title: `${comprasSemConta.length} compra(s) sem conta a pagar`,
+        text: 'Evita custo comprado fora da programação financeira.',
+        meta: comprasSemConta.slice(0, 2).map((x)=>x.pedido || x.id).join(', ') || 'Compras conciliadas',
+        action: 'Abrir compras',
+        href: 'compras.html'
+      }
+    ];
+    const action = (item) => item.href ? `<a class="btn btn-secondary" href="${item.href}">${item.action}</a>` : `<button class="btn btn-primary" data-open-fin-modal="${item.modal}">${item.action}</button>`;
+    return `<section class="card finance-command-center"><div class="section-header"><div><h3>Próxima decisão</h3><p class="muted">Fila curta para priorizar caixa, vencidas e fechamento antes dos relatórios.</p></div><span class="finance-audit-chip">Auditável no protótipo</span></div><div class="finance-decision-list">${decisions.map((item)=>`<article class="finance-decision ${item.tone}"><div><span>${item.label}</span><strong>${item.title}</strong><p>${item.text}</p><small>${item.meta}</small></div>${action(item)}</article>`).join('')}</div></section>`;
   }
 
   function alertRow(a) { return `<div class="finance-alert priority-${a.prioridade}"><span>${badge(a.prioridade)}</span><strong>${a.descricao}</strong><small>${a.registro} · ${money(a.valor)} · ${fmt(a.vencimento)}</small><button class="btn btn-secondary" data-toast-demo>${a.acao}</button></div>`; }
@@ -163,14 +209,14 @@ window.MeloFinanceModule = (() => {
   }
 
   function priorityAlerts() {
-    return `<section class="card critical-block finance-alerts-full"><div class="section-header"><div><h3>Alertas financeiros prioritários</h3><p class="muted">Lista única em largura total para decidir a próxima ação.</p></div><a class="btn btn-secondary" href="contas-receber.html?filtro=vencidas">Ver vencidas</a></div><div class="alert-list">${d().alertasFinanceiros.map(alertRow).join('')}</div></section>`;
+    return `<section class="card finance-alerts-full"><div class="section-header"><div><h3>Alertas financeiros prioritários</h3><p class="muted">Lista única em largura total para decidir a próxima ação.</p></div><a class="btn btn-secondary" href="contas-receber.html?filtro=vencidas">Ver vencidas</a></div><div class="alert-list">${d().alertasFinanceiros.map(alertRow).join('')}</div></section>`;
   }
 
   function periodSummary(m) {
     const recVenc = m.rec.filter((x) => isOverdue({ ...x, tipo:'receber' }));
     const pagVenc = m.pag.filter((x) => isOverdue({ ...x, tipo:'pagar' }));
     const saldo = balanceSnapshot(m);
-    return `<section class="card finance-period-summary"><div class="section-header"><div><h3>Resumo do período</h3><p class="muted">Visão executiva do período selecionado, com saldo em evidência.</p></div></div><div class="finance-summary-hero"><div><span>Saldo previsto do período</span><strong>${money(saldo.previsto)}</strong><small>Saldo inicial ${money(saldo.saldoInicial)} + resultado previsto ${money(saldo.resultadoPrevisto)}</small></div><div><span>Resultado realizado</span><strong>${money(saldo.resultadoRealizado)}</strong><small>Receitas realizadas menos despesas realizadas</small></div><div><span>Diferença previsto x realizado</span><strong>${money(saldo.resultadoPrevisto - saldo.resultadoRealizado)}</strong><small>Gap para acompanhamento do caixa</small></div></div><div class="finance-summary-grid"><div><h4>Receitas</h4><p>Previstas: <strong>${money(m.receitasPrev)}</strong></p><p>Realizadas: <strong>${money(m.receitasReal)}</strong></p><p>Vencidas: <strong>${money(sum(recVenc, 'valorLiquido'))}</strong></p><p>A vencer: <strong>${money(sum(m.rec.filter((x)=>x.vencimento>=TODAY),'valorLiquido'))}</strong></p></div><div><h4>Despesas</h4><p>Previstas: <strong>${money(m.despesasPrev)}</strong></p><p>Realizadas: <strong>${money(m.despesasReal)}</strong></p><p>Vencidas: <strong>${money(sum(pagVenc.map((x)=>({valor:accountTotal(x)}))))}</strong></p><p>A vencer: <strong>${money(sum(m.pag.filter((x)=>x.vencimento>=TODAY).map((x)=>({valor:accountTotal(x)}))))}</strong></p></div><div><h4>Resultado</h4><p>Saldo inicial: <strong>${money(saldo.saldoInicial)}</strong></p><p>Saldo previsto: <strong>${money(saldo.previsto)}</strong></p><p>Saldo realizado: <strong>${money(saldo.realizado)}</strong></p><p>Resultado estimado: <strong>${money(saldo.resultadoPrevisto)}</strong></p></div></div></section>`;
+    return `<section class="card finance-period-summary"><div class="section-header"><div><h3>Resumo do período</h3><p class="muted">Visão executiva do período selecionado, com saldo em evidência.</p></div></div><div class="finance-summary-hero"><div><span>Saldo previsto do período</span><strong>${money(saldo.previsto)}</strong><small>Saldo inicial ${money(saldo.saldoInicial)} + resultado previsto ${money(saldo.resultadoPrevisto)}</small></div><div><span>Resultado realizado</span><strong>${money(saldo.resultadoRealizado)}</strong><small>Receitas realizadas menos despesas realizadas</small></div><div><span>Diferença previsto x realizado</span><strong>${money(saldo.resultadoPrevisto - saldo.resultadoRealizado)}</strong><small>Diferença entre previsto e realizado</small></div></div><div class="finance-summary-grid"><div><h4>Receitas</h4><p>Previstas: <strong>${money(m.receitasPrev)}</strong></p><p>Realizadas: <strong>${money(m.receitasReal)}</strong></p><p>Vencidas: <strong>${money(sum(recVenc, 'valorLiquido'))}</strong></p><p>A vencer: <strong>${money(sum(m.rec.filter((x)=>x.vencimento>=TODAY),'valorLiquido'))}</strong></p></div><div><h4>Despesas</h4><p>Previstas: <strong>${money(m.despesasPrev)}</strong></p><p>Realizadas: <strong>${money(m.despesasReal)}</strong></p><p>Vencidas: <strong>${money(sum(pagVenc.map((x)=>({valor:accountTotal(x)}))))}</strong></p><p>A vencer: <strong>${money(sum(m.pag.filter((x)=>x.vencimento>=TODAY).map((x)=>({valor:accountTotal(x)}))))}</strong></p></div><div><h4>Resultado</h4><p>Saldo inicial: <strong>${money(saldo.saldoInicial)}</strong></p><p>Saldo previsto: <strong>${money(saldo.previsto)}</strong></p><p>Saldo realizado: <strong>${money(saldo.realizado)}</strong></p><p>Resultado estimado: <strong>${money(saldo.resultadoPrevisto)}</strong></p></div></div></section>`;
   }
 
   function weeklyVehicleRevenue(week = weekRange()) {
@@ -193,6 +239,10 @@ window.MeloFinanceModule = (() => {
     const lineRec = (x) => [x.pagador, osLabel(x.osId), money(pending(x, 'receber')), fmt(x.vencimento), badge(x.status), `<button class="btn btn-secondary btn-sm" data-open-fin-modal="receber-baixa" data-account="${x.id}">Baixar</button>`];
     const linePag = (x) => [byId(d().fornecedores, x.fornecedorId).nome || x.fornecedor || '—', x.compraId || x.categoria, money(pending(x, 'pagar')), fmt(x.vencimento), badge(x.status), `<button class="btn btn-secondary btn-sm" data-open-fin-modal="pagar-baixa" data-account="${x.id}">Pagar</button>`];
     return `<section class="section finance-upcoming-section"><div class="section-header"><div><h3>Próximos vencimentos</h3><p class="muted">Tabelas compactas para leitura sem rolagem desnecessária.</p></div></div><div class="grid grid-2 finance-due-grid"><article class="card compact-density"><h4>Receber - hoje e próximos 7 dias</h4>${c().table(['Pagador','OS','Saldo','Vencimento','Status','Ação'], rec.filter((x)=>x.vencimento>=TODAY&&x.vencimento<=next7&&pending(x,'receber')>0).map(lineRec))}</article><article class="card compact-density"><h4>Pagar - hoje e próximos 7 dias</h4>${c().table(['Fornecedor','Origem','Saldo','Vencimento','Status','Ação'], pag.filter((x)=>x.vencimento>=TODAY&&x.vencimento<=next7&&pending(x,'pagar')>0).map(linePag))}</article><article class="card compact-density"><h4>Vencidos a receber</h4>${c().table(['Pagador','OS','Saldo','Vencimento','Status','Ação'], rec.filter((x)=>isOverdue({...x,tipo:'receber'})).map(lineRec))}</article><article class="card compact-density"><h4>Vencidos a pagar</h4>${c().table(['Fornecedor','Origem','Saldo','Vencimento','Status','Ação'], pag.filter((x)=>isOverdue({...x,tipo:'pagar'})).map(linePag))}</article></div></section>`;
+  }
+
+  function supportingFinanceDetails(week) {
+    return `<details class="finance-supporting-details"><summary><span>Faturamento previsto e vencimentos detalhados</span><small>Abra quando precisar investigar a semana ou agir item a item.</small></summary>${weeklyVehicleRevenue(week)}${upcomingLists()}</details>`;
   }
 
   function renderReceivables() {
@@ -231,20 +281,67 @@ window.MeloFinanceModule = (() => {
     return c().table(['Conta','Fornecedor','Descrição','Compra ou OS','Categoria','Valor','Vencimento','Pago','Saldo','Status','Ações'], d().contasPagar.map((a)=>[a.id,byId(d().fornecedores,a.fornecedorId).nome || a.fornecedor,a.descricao,a.compraId || osLabel(a.osId),a.categoria || '—',money(accountTotal(a)),fmt(a.vencimento),money(paid(a)),money(pending(a,'pagar')),badge(a.status),`<button class="btn btn-secondary" data-open-fin-modal="pagar-baixa" data-account="${a.id}">Pagar</button>`]));
   }
 
-  function renderCashflow() {
-    const days = Array.from({ length: 30 }, (_, i) => `2026-06-${String(i+1).padStart(2,'0')}`);
+  function cashflowDayMetrics(date, accPrev, accReal) {
+    const ep = sum(d().contasReceber.filter((x)=>active(x)&&x.vencimento===date),'valorLiquido');
+    const sp = sum(d().contasPagar.filter((x)=>active(x)&&x.vencimento===date).map((x)=>({valor:accountTotal(x)})));
+    const er = sum(d().baixasFinanceiras.filter((x)=>x.tipo==='recebimento'&&x.status!=='estornada'&&x.data===date),'valorLiquido');
+    const sr = sum(d().baixasFinanceiras.filter((x)=>x.tipo==='pagamento'&&x.status!=='estornada'&&x.data===date),'valorLiquido');
+    return { date, ep, sp, er, sr, accPrev: accPrev + ep - sp, accReal: accReal + er - sr };
+  }
+
+  function cashflowMonthDays() {
     let accPrev = 18500, accReal = 18500;
-    const rows = days.map((date) => {
-      const ep = sum(d().contasReceber.filter((x)=>active(x)&&x.vencimento===date),'valorLiquido');
-      const sp = sum(d().contasPagar.filter((x)=>active(x)&&x.vencimento===date).map((x)=>({valor:accountTotal(x)})));
-      const er = sum(d().baixasFinanceiras.filter((x)=>x.tipo==='recebimento'&&x.status!=='estornada'&&x.data===date),'valorLiquido');
-      const sr = sum(d().baixasFinanceiras.filter((x)=>x.tipo==='pagamento'&&x.status!=='estornada'&&x.data===date),'valorLiquido');
-      accPrev += ep - sp; accReal += er - sr;
-      const isToday = date === TODAY;
-      return `<article class="cash-day ${isToday?'is-today':''} ${accReal<0?'negative':''}"><header><span>${isToday ? 'Hoje' : 'Dia'}</span><strong>${date.slice(-2)}</strong></header><div class="cash-day-values"><div class="cash-value previsto"><span>Previsto</span><strong>${money(ep - sp)}</strong><small><b class="entrada">+${money(ep)}</b> <b class="saida">-${money(sp)}</b></small></div><div class="cash-value realizado"><span>Real</span><strong>${money(er - sr)}</strong><small><b class="entrada">+${money(er)}</b> <b class="saida">-${money(sr)}</b></small></div></div><footer><small>Saldo prev. <b>${money(accPrev)}</b></small><small>Saldo real <b>${money(accReal)}</b></small></footer></article>`;
-    }).join('');
+    return Array.from({ length: 30 }, (_, i) => `2026-06-${String(i+1).padStart(2,'0')}`).map((date) => {
+      const row = cashflowDayMetrics(date, accPrev, accReal);
+      accPrev = row.accPrev;
+      accReal = row.accReal;
+      return row;
+    });
+  }
+
+  function cashflowDayCard(row) {
+    const isToday = row.date === TODAY;
+    const dayLabel = isToday ? 'Hoje' : new Date(`${row.date}T00:00:00`).toLocaleDateString('pt-BR', { weekday:'short' }).replace('.', '');
+    return `<article class="cash-day ${isToday?'is-today':''} ${row.accReal<0?'negative':''}"><header><span>${dayLabel}</span><strong>${row.date.slice(-2)}</strong></header><div class="cash-day-values"><div class="cash-value previsto"><span>Previsto</span><strong>${money(row.ep - row.sp)}</strong><small><b class="entrada">+${money(row.ep)}</b> <b class="saida">-${money(row.sp)}</b></small></div><div class="cash-value realizado"><span>Real</span><strong>${money(row.er - row.sr)}</strong><small><b class="entrada">+${money(row.er)}</b> <b class="saida">-${money(row.sr)}</b></small></div></div><footer><small>Saldo previsto <b>${money(row.accPrev)}</b></small><small>Saldo real <b>${money(row.accReal)}</b></small></footer></article>`;
+  }
+
+  function cashflowCommandPanel(m, todayBuckets, overdueBuckets) {
+    const saldo = balanceSnapshot(m);
+    const balanceToday = todayBuckets.receber - todayBuckets.pagar;
+    const overdueTotal = overdueBuckets.rec.length + overdueBuckets.pag.length;
+    const next15In = sum(d().contasReceber.filter((x)=>x.vencimento>TODAY&&x.vencimento<=addDays(TODAY,15)),'valorLiquido');
+    const next15Out = sum(d().contasPagar.filter((x)=>x.vencimento>TODAY&&x.vencimento<=addDays(TODAY,15)).map((x)=>({valor:accountTotal(x)})));
+    const tone = overdueTotal ? 'danger' : balanceToday < 0 ? 'warning' : 'stable';
+    return `<section class="card cashflow-command ${tone}"><div class="cashflow-command-main"><span class="cashflow-kicker">Caixa de hoje</span><h3>${balanceToday < 0 ? 'Revisar saidas antes de pagar' : overdueTotal ? 'Resolver vencidos antes do fechamento' : 'Caixa do dia sob controle'}</h3><p>${money(todayBuckets.receber)} para receber hoje contra ${money(todayBuckets.pagar)} para pagar. Existem ${overdueTotal} vencido(s) fora do fluxo normal.</p><div class="cashflow-command-actions"><a class="btn btn-primary" href="contas-receber.html?filtro=vencidas">Cobrar vencidos</a><a class="btn btn-secondary" href="contas-pagar.html?filtro=vencidas">Ver pagamentos urgentes</a><button class="btn btn-secondary" type="button" data-cashflow-mode="risk">Focar riscos</button></div></div><div class="cashflow-command-metrics"><div><span>Saldo hoje</span><strong>${money(balanceToday)}</strong><small>entradas menos saidas do dia</small></div><div><span>Saldo realizado</span><strong>${money(saldo.realizado)}</strong><small>saldo inicial + baixas do mes</small></div><div><span>Prox. 15 dias</span><strong>${money(next15In - next15Out)}</strong><small>${money(next15In)} entra / ${money(next15Out)} sai</small></div></div></section>`;
+  }
+
+  function cashflowControls() {
+    return `<section class="card finance-filters cashflow-controls"><div class="cashflow-control-row"><label class="form-field"><span>Mes em analise</span><input class="input" type="month" value="2026-06" aria-label="Mes em analise"></label><div class="segmented-control" role="group" aria-label="Camadas do fluxo"><button class="btn btn-secondary is-active" type="button" data-cashflow-layer="previsto" aria-pressed="true">Mostrar previsto</button><button class="btn btn-secondary is-active" type="button" data-cashflow-layer="realizado" aria-pressed="true">Mostrar realizado</button><button class="btn btn-secondary" type="button" data-cashflow-view="month">Ver mes completo</button></div><div class="cashflow-nav"><button class="btn btn-secondary" type="button" data-month-prev>Mes anterior</button><button class="btn btn-primary" type="button" data-today>Hoje</button><button class="btn btn-secondary" type="button" data-month-next>Proximo mes</button></div></div><div class="active-filters cashflow-filter-chips" aria-label="Filtros aplicados"><span>Junho/2026</span><span>Previsto e realizado visiveis</span><span>Foco: hoje + 7 dias</span></div></section>`;
+  }
+
+  function cashflowWeekStrip(rows) {
+    const weeks = [
+      ['01-07', rows.slice(0, 7)],
+      ['08-14', rows.slice(7, 14)],
+      ['15-21', rows.slice(14, 21)],
+      ['22-30', rows.slice(21)]
+    ];
+    return `<div class="cashflow-week-strip">${weeks.map(([label, items]) => {
+      const prev = sum(items.map((x)=>({valor:x.ep-x.sp})));
+      const real = sum(items.map((x)=>({valor:x.er-x.sr})));
+      const current = items.some((x)=>x.date === TODAY);
+      return `<article class="${current?'is-current':''}"><span>${label}/06</span><strong>${money(real)}</strong><small>Previsto ${money(prev)}</small></article>`;
+    }).join('')}</div>`;
+  }
+
+  function renderCashflow() {
     const m = metrics();
-    return `${header('Fluxo de caixa', 'Linha do tempo mensal com entradas, saídas, previsto, realizado e saldo acumulado para decisão diária.', '<button class="btn btn-secondary" data-month-prev>Mês anterior</button><button class="btn btn-primary" data-today>Hoje</button><button class="btn btn-secondary" data-month-next>Próximo mês</button>')}<section class="card finance-filters"><div class="toolbar"><input class="input" type="month" value="2026-06"><button class="btn btn-secondary" data-toast-demo>Filtros</button><button class="btn btn-secondary" data-toggle-class="show-previsto">Alternar previsto</button><button class="btn btn-secondary" data-toggle-class="show-realizado">Alternar realizado</button><button class="btn btn-secondary" data-toast-demo>Zoom</button></div></section>${cashflowCards(m)}<section class="card cashflow-board-card"><div class="section-header"><div><h3>Fluxo diário de junho</h3><p class="muted">O dia atual fica em destaque para conferência de caixa, previsto e realizado.</p></div></div><div class="cashflow-timeline">${rows}</div></section>${cashflowAux()}`;
+    const todayBuckets = dueBuckets(TODAY, TODAY);
+    const overdueBuckets = overdueTotals();
+    const monthRows = cashflowMonthDays();
+    const todayIndex = monthRows.findIndex((row)=>row.date === TODAY);
+    const focusRows = monthRows.slice(Math.max(0, todayIndex), Math.min(monthRows.length, todayIndex + 8)).map(cashflowDayCard).join('');
+    return `${header('Fluxo de caixa', 'Central diaria para decidir cobrancas, pagamentos e riscos antes do fechamento do caixa.', '<button class="btn btn-secondary" data-export>Exportar visao</button>')}${cashflowCommandPanel(m, todayBuckets, overdueBuckets)}${cashflowControls()}${cashflowCards(m)}<section class="card cashflow-board-card"><div class="section-header"><div><h3>Hoje e proximos 7 dias</h3><p class="muted">O calendario completo fica resumido por semana; a leitura detalhada foca no periodo acionavel.</p></div></div>${cashflowWeekStrip(monthRows)}<div class="cashflow-timeline">${focusRows}</div></section>${cashflowAux()}`;
   }
 
   function cashflowCards(m) {
@@ -253,11 +350,10 @@ window.MeloFinanceModule = (() => {
     const recVencido = sum(vencRec.map((x)=>({ valor:pending(x, 'receber') })));
     const pagVencido = sum(vencPag.map((x)=>({ valor:pending(x, 'pagar') })));
     const card = (label, value, note, kind = '') => `<article class="finance-area-card ${kind}"><span>${label}</span><strong>${value}</strong><small>${note}</small></article>`;
-    return `<section class="cashflow-area-grid">
-      <article class="card finance-area"><div class="section-header"><div><h3>Entradas</h3><p class="muted">Recebíveis previstos e realizados.</p></div></div><div class="finance-area-cards">${card('Previstas', money(m.receitasPrev), 'contas a receber no período', 'in')}${card('Realizadas', money(m.receitasReal), 'baixas confirmadas', 'in')}${card('A realizar', money(Math.max(0, m.receitasPrev - m.receitasReal)), 'diferença prevista', 'balance')}</div></article>
-      <article class="card finance-area"><div class="section-header"><div><h3>Saídas</h3><p class="muted">Pagamentos previstos e baixados.</p></div></div><div class="finance-area-cards">${card('Previstas', money(m.despesasPrev), 'contas a pagar no período', 'out')}${card('Realizadas', money(m.despesasReal), 'pagamentos efetuados', 'out')}${card('A pagar', money(Math.max(0, m.despesasPrev - m.despesasReal)), 'saldo operacional', 'balance')}</div></article>
-      <article class="card finance-area"><div class="section-header"><div><h3>Saldo</h3><p class="muted">Resultado líquido para gestão do caixa.</p></div></div><div class="finance-area-cards">${card('Saldo previsto', money(m.receitasPrev - m.despesasPrev), 'entradas menos saídas', 'balance')}${card('Saldo realizado', money(m.receitasReal - m.despesasReal), 'realizado no período', 'balance')}${card('Variação', money((m.receitasReal - m.despesasReal) - (m.receitasPrev - m.despesasPrev)), 'real x previsto', 'balance')}</div></article>
-      <article class="card finance-area finance-overdue-area"><div class="section-header"><div><h3>Risco imediato</h3><p class="muted">Vencidos que exigem ação financeira.</p></div></div><div class="finance-area-cards">${card('Vencidos a receber', vencRec.length, money(recVencido), 'danger')}${card('Vencidos a pagar', vencPag.length, money(pagVencido), 'danger')}${card('Exposição', money(recVencido - pagVencido), 'receber vencido menos pagar vencido', 'balance')}</div></article>
+    return `<section class="cashflow-area-grid cashflow-summary-grid">
+      <article class="card finance-area"><div class="section-header"><div><h3>Entradas</h3><p class="muted">Recebiveis previstos e baixas confirmadas.</p></div></div><div class="finance-area-cards">${card('Previstas', money(m.receitasPrev), 'contas a receber no periodo', 'in')}${card('Realizadas', money(m.receitasReal), 'baixas confirmadas', 'in')}${card('A realizar', money(Math.max(0, m.receitasPrev - m.receitasReal)), 'diferenca prevista', 'balance')}</div></article>
+      <article class="card finance-area"><div class="section-header"><div><h3>Saidas</h3><p class="muted">Pagamentos previstos e baixados.</p></div></div><div class="finance-area-cards">${card('Previstas', money(m.despesasPrev), 'contas a pagar no periodo', 'out')}${card('Realizadas', money(m.despesasReal), 'pagamentos efetuados', 'out')}${card('A pagar', money(Math.max(0, m.despesasPrev - m.despesasReal)), 'saldo operacional', 'balance')}</div></article>
+      <article class="card finance-area finance-overdue-area"><div class="section-header"><div><h3>Risco imediato</h3><p class="muted">Vencidos que exigem acao financeira.</p></div></div><div class="finance-area-cards">${card('A receber vencido', money(recVencido), `${vencRec.length} conta(s)`, 'danger')}${card('A pagar vencido', money(pagVencido), `${vencPag.length} conta(s)`, 'danger')}${card('Exposicao liquida', money(recVencido - pagVencido), 'receber vencido menos pagar vencido', 'balance')}</div></article>
     </section>`;
   }
 
@@ -324,9 +420,13 @@ window.MeloFinanceModule = (() => {
   }
 
   function cashflowAux() {
-    const rec = d().contasReceber.filter((x)=>isOverdue({...x,tipo:'receber'})).map((x)=>[x.id,x.pagador,osLabel(x.osId),fmt(x.vencimento),money(pending(x,'receber')),`${daysBetween(x.vencimento)} dias`,'<button class="btn btn-secondary" data-toast-demo>Cobrar</button>']);
-    const pag = d().contasPagar.filter((x)=>isOverdue({...x,tipo:'pagar'})).map((x)=>[x.id,byId(d().fornecedores,x.fornecedorId).nome||x.fornecedor,x.compraId||x.categoria,fmt(x.vencimento),money(pending(x,'pagar')),`${daysBetween(x.vencimento)} dias`,'<button class="btn btn-secondary" data-toast-demo>Pagar</button>']);
-    return `<section class="grid grid-2"><article class="card"><h3>Entradas previstas até hoje não recebidas</h3>${c().table(['Conta','Pagador','OS','Vencimento','Valor','Atraso','Ação'], rec)}</article><article class="card"><h3>Saídas previstas até hoje não pagas</h3>${c().table(['Conta','Fornecedor','Compra/categoria','Vencimento','Valor','Atraso','Ação'], pag)}</article><article class="card"><h3>Próximos 15 dias</h3><p>Entradas: <strong>${money(sum(d().contasReceber.filter((x)=>x.vencimento>TODAY&&x.vencimento<=addDays(TODAY,15)),'valorLiquido'))}</strong></p><p>Saídas: <strong>${money(sum(d().contasPagar.filter((x)=>x.vencimento>TODAY&&x.vencimento<=addDays(TODAY,15)).map((x)=>({valor:accountTotal(x)}))))}</strong></p><p>Saldo projetado: <strong>${money(sum(d().contasReceber.filter((x)=>x.vencimento>TODAY&&x.vencimento<=addDays(TODAY,15)),'valorLiquido')-sum(d().contasPagar.filter((x)=>x.vencimento>TODAY&&x.vencimento<=addDays(TODAY,15)).map((x)=>({valor:accountTotal(x)}))))}</strong></p></article></section>`;
+    const rec = d().contasReceber.filter((x)=>isOverdue({...x,tipo:'receber'})).map((x)=>({ tipo:'Receber', parte:x.pagador, origem:osLabel(x.osId), vencimento:x.vencimento, valor:pending(x,'receber'), atraso:daysBetween(x.vencimento), acao:'Cobrar', href:'contas-receber.html' }));
+    const pag = d().contasPagar.filter((x)=>isOverdue({...x,tipo:'pagar'})).map((x)=>({ tipo:'Pagar', parte:byId(d().fornecedores,x.fornecedorId).nome||x.fornecedor, origem:x.compraId||x.categoria, vencimento:x.vencimento, valor:pending(x,'pagar'), atraso:daysBetween(x.vencimento), acao:'Pagar', href:'contas-pagar.html' }));
+    const queue = [...rec, ...pag].sort((a,b)=>b.atraso-a.atraso || b.valor-a.valor);
+    const rows = queue.map((x)=>[badge(x.tipo), x.parte, x.origem, fmt(x.vencimento), money(x.valor), `${x.atraso} dias`, `<a class="btn btn-secondary" href="${x.href}">${x.acao}</a>`]);
+    const next15In = sum(d().contasReceber.filter((x)=>x.vencimento>TODAY&&x.vencimento<=addDays(TODAY,15)),'valorLiquido');
+    const next15Out = sum(d().contasPagar.filter((x)=>x.vencimento>TODAY&&x.vencimento<=addDays(TODAY,15)).map((x)=>({valor:accountTotal(x)})));
+    return `<section class="cashflow-support-grid"><article class="card cashflow-risk-queue"><div class="section-header"><div><h3>Fila priorizada de vencidos</h3><p class="muted">Recebimentos e pagamentos em uma lista unica, ordenada por atraso e valor.</p></div></div>${rows.length ? c().table(['Tipo','Parte','Origem','Vencimento','Valor','Atraso','Acao'], rows) : c().emptyState('Sem vencidos','Nenhuma conta vencida fora do fluxo normal.')}</article><article class="card cashflow-next-window"><h3>Proximos 15 dias</h3><p>Entradas: <strong>${money(next15In)}</strong></p><p>Saidas: <strong>${money(next15Out)}</strong></p><p>Saldo projetado: <strong>${money(next15In-next15Out)}</strong></p><small class="muted">Janela de apoio para antecipar aperto de caixa sem competir com a decisao de hoje.</small></article></section>`;
   }
 
   function renderRules() { return `${header('Regras de pagamento', 'Prazos, parcelas, formas de pagamento e taxas fictícias para simulação.', '<button class="btn btn-primary" data-toast-demo>Nova regra</button>')}<section class="grid grid-2"><article class="card"><h3>Regras</h3>${c().table(['Nome','Tipo','Prazo','Dia fixo','Parcelas','Intervalo','Forma','Taxa','Responsável','Status'], d().regrasPagamento.map((r)=>[r.nome,r.tipo,`${r.prazo} dias`,r.diaFixo||'—',r.parcelas,r.intervalo?`${r.intervalo} dias`:'—',r.formaPagamento,`${r.taxaPercentual}%`,r.responsavel,badge(r.ativa?'Ativa':'Inativa')]))}</article><article class="card"><h3>Taxas de cartão</h3>${c().table(['Modalidade','Percentual','Tarifa fixa','Prazo recebimento','Ativa','Observação'], d().taxasCartao.map((t)=>[t.nome,`${t.percentual}%`,money(t.tarifaFixa),`${t.prazoRecebimento} dias`,badge(t.ativa?'Ativa':'Inativa'),t.observacao]))}<div class="finance-formula"><strong>Exemplo:</strong> R$ 1.000,00 - 3,49% - R$ 0,00 = <strong>R$ 965,10</strong>. A alteração de forma/parcelas recalcula taxa, líquido e fórmula antes da confirmação.</div></article></section>`; }
@@ -353,14 +453,38 @@ window.MeloFinanceModule = (() => {
 
   function historyTimeline(osId) { const items = (d().historicoFinanceiro || []).filter((h)=>!osId || h.osId===osId).slice(0, 16); return `<div class="timeline">${items.map((h)=>`<div class="timeline-item"><strong>${fmt(h.data.slice(0,10))} ${h.data.slice(11,16)} · ${h.tipo}</strong><p>${h.descricao}</p><small>${h.usuario} · ${h.registro} · anterior: ${h.valorAnterior || '—'} · novo: ${h.valorNovo || '—'}</small></div>`).join('')}</div>`; }
 
-  function financeModalMarkup() { return `<div class="modal-backdrop" id="financeActionModal"><div class="modal modal-large"><button class="modal-close" data-modal-close>×</button><h3 data-fin-modal-title>Operação financeira simulada</h3><div class="finance-modal-body"><div class="form-grid"><label class="form-field"><span>Origem</span><select class="select"><option>OS</option><option>compra</option><option>complemento</option><option>lançamento manual</option><option>ajuste</option></select></label><label class="form-field"><span>Registro</span><input class="input" value="OS 1042"></label><label class="form-field"><span>Pagador/fornecedor</span><input class="input" value="Porto Seguro"></label><label class="form-field"><span>Valor bruto</span><input class="input" type="number" value="1000" data-gross></label><label class="form-field"><span>Forma de pagamento</span><select class="select" data-payment-method><option>Pix</option><option>Cartão de crédito</option><option>Boleto</option><option>Transferência</option></select></label><label class="form-field"><span>Parcelas</span><input class="input" type="number" value="3" min="1" data-installments></label><label class="form-field"><span>Taxa real / prevista</span><input class="input" type="number" value="3.49" step="0.01" data-fee></label><label class="form-field"><span>Tarifa fixa</span><input class="input" type="number" value="0" step="0.01" data-fixed-fee></label><label class="form-field"><span>Valor líquido</span><input class="input" value="965,10" data-net></label><label class="form-field wide"><span>Observação / justificativa</span><textarea class="input">Cálculo revisado antes da confirmação. Ajuste manual exige justificativa.</textarea></label></div><div class="finance-formula" data-formula>Fórmula: R$ 1.000,00 - 3,49% - R$ 0,00 = R$ 965,10</div><h4>Parcelas geradas</h4><div class="table-wrap"><table class="table"><tbody data-installment-preview></tbody></table></div><div class="form-actions"><button class="btn btn-primary" data-confirm-finance>Confirmar simulação</button><button class="btn btn-secondary" data-storno>Registrar estorno</button><button class="btn btn-secondary" data-modal-close>Cancelar</button></div></div></div></div>`; }
+  function financeModalMarkup() { return `<div class="modal-backdrop" id="financeActionModal"><div class="modal modal-large finance-modal"><button class="modal-close" data-modal-close>×</button><h3 data-fin-modal-title>Operação financeira simulada</h3><p class="muted finance-modal-intro">Revise conta, valor, impacto no caixa e trilha de auditoria antes de confirmar.</p><div class="finance-modal-body"><div class="form-grid"><label class="form-field"><span>Origem</span><select class="select" data-fin-origin><option>OS</option><option>compra</option><option>complemento</option><option>lançamento manual</option><option>ajuste</option></select></label><label class="form-field"><span>Registro</span><input class="input" value="OS 1042" data-fin-record></label><label class="form-field"><span>Pagador/fornecedor</span><input class="input" value="Porto Seguro" data-fin-party></label><label class="form-field"><span>Valor bruto</span><input class="input" type="number" value="1000" min="0" step="0.01" data-gross></label><label class="form-field"><span>Forma de pagamento</span><select class="select" data-payment-method><option>Pix</option><option>Cartão de crédito</option><option>Boleto</option><option>Transferência</option></select></label><label class="form-field"><span>Parcelas</span><input class="input" type="number" value="3" min="1" data-installments></label><label class="form-field"><span>Taxa real / prevista</span><input class="input" type="number" value="3.49" min="0" step="0.01" data-fee></label><label class="form-field"><span>Tarifa fixa</span><input class="input" type="number" value="0" min="0" step="0.01" data-fixed-fee></label><label class="form-field"><span>Valor líquido</span><input class="input" value="965,10" data-net readonly></label><label class="form-field wide"><span>Observação / justificativa</span><textarea class="input" data-justification required>Cálculo revisado antes da confirmação. Ajuste manual exige justificativa.</textarea></label></div><div class="finance-safety-grid" data-impact-preview></div><div class="finance-formula" data-formula>Fórmula: R$ 1.000,00 - 3,49% - R$ 0,00 = R$ 965,10</div><h4>Parcelas geradas</h4><div class="table-wrap"><table class="table"><tbody data-installment-preview></tbody></table></div><p class="form-hint" data-finance-error hidden></p><div class="form-actions"><button class="btn btn-primary" data-confirm-finance>Confirmar e registrar histórico</button><button class="btn btn-secondary" data-storno>Registrar estorno</button><button class="btn btn-secondary" data-modal-close>Cancelar</button></div></div></div></div>`; }
+
+  function configureFinanceModal(modal, mode) {
+    modal.dataset.financeMode = mode;
+    const title = modal.querySelector('[data-fin-modal-title]');
+    if (title) title.textContent = mode.includes('pagar') ? 'Conta a pagar / pagamento simulado' : mode === 'baixa' ? 'Baixa financeira simulada' : 'Conta a receber / recebimento simulado';
+    const party = modal.querySelector('[data-fin-party]');
+    if (party) party.value = mode.includes('pagar') ? 'Auto Peças Nobre' : 'Porto Seguro';
+    const origin = modal.querySelector('[data-fin-origin]');
+    if (origin) origin.value = mode.includes('pagar') ? 'compra' : 'OS';
+    updateFormula(modal);
+  }
 
   function bindFinance(root, file) {
-    root.querySelectorAll('[data-open-fin-modal]').forEach((btn)=>btn.addEventListener('click',()=>{ const modal=document.querySelector('#financeActionModal'); if(!modal) return; modal.classList.add('is-open'); modal.querySelector('[data-fin-modal-title]').textContent = btn.dataset.openFinModal.includes('pagar') ? 'Conta a pagar / pagamento simulado' : 'Conta a receber / recebimento simulado'; updateFormula(modal); }));
-    root.querySelectorAll('[data-gross],[data-fee],[data-fixed-fee],[data-installments],[data-payment-method]').forEach((field)=>field.addEventListener('input',()=>updateFormula(field.closest('.modal-backdrop'))));
+    root.querySelectorAll('[data-open-fin-modal]').forEach((btn)=>btn.addEventListener('click',()=>{ const modal=document.querySelector('#financeActionModal'); if(!modal) return; modal.classList.add('is-open'); configureFinanceModal(modal, btn.dataset.openFinModal || 'receber'); }));
+    root.querySelectorAll('[data-gross],[data-fee],[data-fixed-fee],[data-installments],[data-payment-method],[data-fin-origin],[data-fin-record],[data-fin-party],[data-justification]').forEach((field)=>field.addEventListener('input',()=>updateFormula(field.closest('.modal-backdrop'))));
     root.querySelectorAll('[data-confirm-finance]').forEach((btn)=>btn.addEventListener('click',()=>{ simulateFinance(btn.closest('.modal-backdrop')); }));
     root.querySelectorAll('[data-storno]').forEach((btn)=>btn.addEventListener('click',()=>{ d().historicoFinanceiro.unshift({data:'2026-06-12T11:20:00',usuario:'Caio Dicieri',tipo:'estorno',descricao:'Estorno simulado registrado e saldo reaberto quando aplicável.',valorAnterior:'baixado',valorNovo:'pendente',registro:'ESTORNO-SIM',osId:'os-1042'}); toast('Estorno registrado no histórico financeiro.'); }));
     root.querySelectorAll('[data-fin-tabs] .tab').forEach((tab)=>tab.addEventListener('click',()=>{ root.querySelectorAll('[data-fin-tabs] .tab').forEach((x)=>x.classList.remove('active')); tab.classList.add('active'); const box=root.querySelector('[data-fin-list]'); if(box) box.innerHTML = file==='contas-pagar.html' ? payableTable(tab.dataset.mode) : receivableTable(tab.dataset.mode); }));
+    root.querySelectorAll('[data-cashflow-layer]').forEach((btn)=>btn.addEventListener('click',()=>{
+      const layer = btn.dataset.cashflowLayer;
+      const pressed = btn.getAttribute('aria-pressed') !== 'true';
+      btn.setAttribute('aria-pressed', String(pressed));
+      btn.classList.toggle('is-active', pressed);
+      root.classList.toggle(`hide-${layer}`, !pressed);
+      toast(`${pressed ? 'Exibindo' : 'Ocultando'} camada ${layer}.`);
+    }));
+    root.querySelectorAll('[data-cashflow-mode="risk"]').forEach((btn)=>btn.addEventListener('click',()=>{
+      root.querySelector('.cashflow-risk-queue')?.scrollIntoView({ behavior:'smooth', block:'start' });
+      toast('Fila de riscos em foco.');
+    }));
+    root.querySelectorAll('[data-cashflow-view="month"]').forEach((btn)=>btn.addEventListener('click',()=>toast('Visão mensal resumida por semanas; detalhe mantido em hoje + 7 dias.')));
     root.querySelectorAll('[data-apply-period],[data-clear-period],[data-apply-list-filter],[data-clear-list-filter],[data-export],[data-month-prev],[data-month-next],[data-today],[data-toggle-class]').forEach((btn)=>btn.addEventListener('click',()=>toast('Ação aplicada no protótipo com dados fictícios sincronizados.')));
     root.querySelectorAll('[data-close-os]').forEach((btn)=>btn.addEventListener('click',()=>closeOS(btn.dataset.closeOs)));
     root.querySelectorAll('[data-reopen-os]').forEach((btn)=>btn.addEventListener('click',()=>reopenOS(btn.dataset.reopenOs)));
@@ -437,22 +561,45 @@ window.MeloFinanceModule = (() => {
     const installments = Math.max(1, Number(scope.querySelector('[data-installments]')?.value || 1));
     const tax = +(gross * fee / 100 + fixed).toFixed(2);
     const net = +(gross - tax).toFixed(2);
+    const isPay = scope.dataset.financeMode?.includes('pagar');
+    const record = scope.querySelector('[data-fin-record]')?.value || 'OS 1042';
+    const party = scope.querySelector('[data-fin-party]')?.value || (isPay ? 'Fornecedor' : 'Pagador');
+    const justification = scope.querySelector('[data-justification]')?.value.trim() || '';
     const netInput = scope.querySelector('[data-net]'); if (netInput) netInput.value = money(net);
     const formula = scope.querySelector('[data-formula]'); if (formula) formula.textContent = `Fórmula: ${money(gross)} - ${fee.toFixed(2)}% - ${money(fixed)} = ${money(net)}. Prazo de recebimento conforme regra de pagamento.`;
+    const preview = scope.querySelector('[data-impact-preview]');
+    if (preview) preview.innerHTML = [
+      ['Conta afetada', `${record} · ${party}`],
+      ['Impacto no caixa', `${isPay ? '-' : '+'}${money(Math.abs(net))}`],
+      ['Auditoria', 'Caio Dicieri · hoje · histórico financeiro'],
+      ['Recuperação', 'Estorno reabre saldo e preserva lançamento original']
+    ].map(([label, value]) => `<div><span>${label}</span><strong>${value}</strong></div>`).join('');
+    const error = scope.querySelector('[data-finance-error]');
+    const confirm = scope.querySelector('[data-confirm-finance]');
+    const invalid = gross <= 0 || justification.length < 10;
+    if (error) {
+      error.hidden = !invalid;
+      error.textContent = gross <= 0 ? 'Informe um valor maior que zero antes de confirmar.' : 'Inclua uma justificativa clara para a auditoria.';
+    }
+    if (confirm) confirm.disabled = invalid;
     const tbody = scope.querySelector('[data-installment-preview]');
     if (tbody) tbody.innerHTML = Array.from({length: installments}, (_,i)=>`<tr><td>Parcela ${i+1}/${installments}</td><td>${money(gross/installments)}</td><td>${money(tax/installments)}</td><td>${money(net/installments)}</td><td>${fmt(addDays(TODAY, 30*(i+1)))}</td><td><button class="btn btn-secondary" type="button">Editar</button></td></tr>`).join('');
   }
 
   function simulateFinance(modal) {
-    const isPay = modal.querySelector('[data-fin-modal-title]').textContent.includes('pagar');
+    const isPay = modal.dataset.financeMode?.includes('pagar');
     const gross = Number(modal.querySelector('[data-gross]').value || 0);
     const fee = Number(modal.querySelector('[data-fee]').value || 0);
     const fixed = Number(modal.querySelector('[data-fixed-fee]').value || 0);
+    const party = modal.querySelector('[data-fin-party]')?.value || (isPay ? 'Auto Peças Nobre' : 'Porto Seguro');
+    const record = modal.querySelector('[data-fin-record]')?.value || 'OS 1042';
+    const justification = modal.querySelector('[data-justification]')?.value.trim() || '';
+    if (gross <= 0 || justification.length < 10) { updateFormula(modal); return; }
     const tax = +(gross * fee / 100 + fixed).toFixed(2);
     const net = +(gross - tax).toFixed(2);
-    if (isPay) { d().financeiroSessao.criadoPagar += 1; d().contasPagar.unshift({ id:`PAG-SIM-${d().financeiroSessao.criadoPagar}`, fornecedorId:'FOR-001', fornecedor:'Auto Peças Nobre', compraId:'compra-001', osId:'os-1042', categoria:'peças', descricao:'Conta simulada vinculada à compra', status:'parcialmente paga', valor:gross, valorFinal:gross, vencimento:'2026-06-25', formaPagamento:'Pix', responsavel:'Caio Dicieri' }); }
-    else { d().financeiroSessao.criadoReceber += 1; d().contasReceber.unshift({ id:`REC-SIM-${d().financeiroSessao.criadoReceber}`, osId:'os-1042', pagador:'Porto Seguro', tipoPagador:'seguradora', descricao:'Conta simulada gerada no protótipo', status:'parcialmente recebida', valorBruto:gross, taxa:tax, valorLiquido:net, vencimento:'2026-06-25', formaPagamento:'Cartão de crédito', parcelas:3, responsavel:'Caio Dicieri', emissao:TODAY }); }
-    d().historicoFinanceiro.unshift({data:'2026-06-12T11:10:00',usuario:'Caio Dicieri',tipo:isPay?'conta a pagar criada':'conta a receber criada',descricao:'Operação simulada confirmou conta, parcelas, taxa, baixa parcial/total e atualização de indicadores.',valorAnterior:'—',valorNovo:money(net),registro:isPay?'PAG-SIM':'REC-SIM',osId:'os-1042'});
+    if (isPay) { d().financeiroSessao.criadoPagar += 1; d().contasPagar.unshift({ id:`PAG-SIM-${d().financeiroSessao.criadoPagar}`, fornecedorId:'FOR-001', fornecedor:party, compraId:'compra-001', osId:'os-1042', categoria:'peças', descricao:`Conta simulada vinculada a ${record}`, status:'parcialmente paga', valor:gross, valorFinal:gross, vencimento:'2026-06-25', formaPagamento:'Pix', responsavel:'Caio Dicieri' }); }
+    else { d().financeiroSessao.criadoReceber += 1; d().contasReceber.unshift({ id:`REC-SIM-${d().financeiroSessao.criadoReceber}`, osId:'os-1042', pagador:party, tipoPagador:'seguradora', descricao:`Conta simulada vinculada a ${record}`, status:'parcialmente recebida', valorBruto:gross, taxa:tax, valorLiquido:net, vencimento:'2026-06-25', formaPagamento:'Cartão de crédito', parcelas:3, responsavel:'Caio Dicieri', emissao:TODAY }); }
+    d().historicoFinanceiro.unshift({data:'2026-06-12T11:10:00',usuario:'Caio Dicieri',tipo:isPay?'conta a pagar criada':'conta a receber criada',descricao:`Operação simulada revisada com impacto no caixa, parcelas, taxa e justificativa: ${justification}`,valorAnterior:'—',valorNovo:money(net),registro:isPay?'PAG-SIM':'REC-SIM',osId:'os-1042'});
     modal.classList.remove('is-open'); toast('Operação financeira simulada, indicadores e histórico atualizados.'); render(window.MeloNavigation.currentFile());
   }
 

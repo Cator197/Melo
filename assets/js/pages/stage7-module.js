@@ -65,40 +65,82 @@ window.MeloStage7Module = (() => {
     return osRows().filter((r) => days(r.os.entrada) <= limit || period === 'ano' || period === 'personalizado');
   }
 
-  function renderReports() {
-    const rows = osRows();
+  function reportFocusCard({ tone = 'primary', label, value, text, action }) {
+    return `<article class="report-focus-card ${tone}"><span>${label}</span><strong>${value}</strong><p>${text}</p><b>${action}</b></article>`;
+  }
+  function reportCompactMetric(label, value, note, tone = '') {
+    return `<article class="report-metric ${tone}"><span>${label}</span><strong>${value}</strong><small>${note}</small></article>`;
+  }
+  function reportExecutiveSummary(rows) {
     const active = rows.filter((r) => activeStatuses.includes(r.os.status));
-    const delivered = rows.filter((r) => r.os.entregaReal);
-    const compras = d().compras || [];
+    const delayed = active.filter((r) => r.os.previsao < today && !r.os.entregaReal);
+    const blocked = active.filter((r) => r.os.condicoes?.length);
+    const lowMargin = rows.filter((r) => ((r.receita * .92 - r.custo) / Math.max(r.receita, 1)) < .18);
     const rec = d().contasReceber || [];
     const pag = d().contasPagar || [];
     const receitaReal = sum(rec.filter((x) => x.status === 'Recebido'));
     const despesaReal = sum(pag.filter((x) => x.status === 'Pago'));
-    const cards = [
-      ['Veículos recebidos', rows.length, '+8% vs. período anterior'], ['Veículos entregues', delivered.length, 'estável'], ['Em produção', active.length, '-3%'], ['Atrasados', active.filter((r) => r.os.previsao < today).length, '+2 casos'],
-      ['Faturamento aprovado', money(sum(rows, (r) => r.receita)), '+12%'], ['Receitas realizadas', money(receitaReal), '+6%'], ['Despesas realizadas', money(despesaReal), '-4%'], ['Lucro estimado', money(sum(rows, (r) => r.receita - r.custo)), '+9%'],
-      ['Lucro realizado', money(receitaReal - despesaReal), '+5%'], ['Margem média', `${Math.round((sum(rows, r => r.receita - r.custo) / Math.max(sum(rows, r => r.receita), 1)) * 100)}%`, 'saudável'], ['Compras pendentes', compras.filter((p) => !String(p.status).includes('Recebido')).length, 'atenção'], ['Complementos em aberto', d().complementos.filter((x) => !String(x.status).includes('Aprovado')).length, 'em análise']
-    ];
+    const result = receitaReal - despesaReal;
+    const nextDelayed = delayed[0];
+    const nextBlocked = blocked[0];
+    return `<div class="report-command">
+      <div>
+        <span class="home-date">Central de decisão</span>
+        <h2>O que precisa de atenção neste período</h2>
+        <p>Resumo gerencial simulado para validar prioridades de prazo, margem, compras e fluxo financeiro antes da implementação real.</p>
+      </div>
+      <div class="report-command-status">
+        ${chip('Dados simulados', 'primary')}
+        <small data-report-confidence>Filtros atualizam o recorte visual do protótipo.</small>
+      </div>
+    </div>
+    <div class="report-focus-grid">
+      ${reportFocusCard({ tone: delayed.length ? 'danger' : 'success', label: 'Prazo', value: `${delayed.length} OS atrasada(s)`, text: nextDelayed ? `${nextDelayed.veiculo.placa} está em ${nextDelayed.etapa.nome} com entrega prevista em ${fmt(nextDelayed.os.previsao)}.` : 'Nenhuma OS ativa atrasada no recorte atual.', action: delayed.length ? 'Priorizar produção e aviso ao cliente' : 'Manter ritmo de entrega' })}
+      ${reportFocusCard({ tone: blocked.length ? 'warning' : 'success', label: 'Bloqueios', value: `${blocked.length} OS com condição`, text: nextBlocked ? `${nextBlocked.veiculo.placa}: ${(nextBlocked.os.condicoes || []).map(id=>byId(d().condicoesParalelas,id).nome).join(', ')}.` : 'Sem bloqueio paralelo ativo no recorte.', action: blocked.length ? 'Resolver compra, complemento ou cliente' : 'Sem ação crítica' })}
+      ${reportFocusCard({ tone: lowMargin.length ? 'warning' : 'primary', label: 'Margem', value: `${lowMargin.length} OS abaixo do limite`, text: lowMargin[0] ? `${lowMargin[0].os.numero} precisa revisão de custo antes do fechamento.` : 'Margem estimada acima do limite mínimo simulado.', action: lowMargin.length ? 'Revisar custos e pendências' : 'Acompanhar fechamento' })}
+      ${reportFocusCard({ tone: result < 0 ? 'danger' : 'primary', label: 'Resultado realizado', value: money(result), text: 'Receitas e despesas baixadas no protótipo. Valores previstos continuam separados.', action: result < 0 ? 'Conferir vencidos e despesas' : 'Exportar somente após conferência' })}
+    </div>
+    <div class="report-support-grid">
+      ${reportCompactMetric('Veículos recebidos', rows.length, 'volume operacional')}
+      ${reportCompactMetric('Em produção', active.length, 'fila ativa')}
+      ${reportCompactMetric('Faturamento aprovado', money(sum(rows, (r) => r.receita)), 'valor aprovado')}
+      ${reportCompactMetric('Lucro estimado', money(sum(rows, (r) => r.receita - r.custo)), 'provisório até fechamento', 'provisional')}
+      ${reportCompactMetric('Compras pendentes', (d().compras || []).filter((p) => !String(p.status).includes('Recebido')).length, 'podem bloquear entrega', 'warning')}
+      ${reportCompactMetric('Complementos abertos', d().complementos.filter((x) => !String(x.status).includes('Aprovado')).length, 'em análise', 'warning')}
+    </div>`;
+  }
+  function detailedBaseReport(rows) {
+    return `${budgetsReport()}${section('Clientes e veículos', customersVehiclesReport(), 'report-detail-section')}`;
+  }
+
+  function renderReports() {
+    const rows = osRows();
     const etapaItems = d().etapasProducao.map((e) => ({ label: e.nome, value: rows.filter((r) => r.os.etapaId === e.id).length }));
-    const receitaDespesa = [{ label: 'Receitas', value: receitaReal, format: money(receitaReal) }, { label: 'Despesas', value: despesaReal, format: money(despesaReal) }];
-    set(`${hero('Relatórios', 'Indicadores operacionais, financeiros, compras, rentabilidade e desempenho usando a base central de mock-data.js.', 'Relatórios')}
+    const tabs = [
+      ['report-0', 'Resumo executivo'],
+      ['report-1', 'Atrasos e gargalos'],
+      ['report-2', 'Resultado financeiro'],
+      ['report-3', 'Compras bloqueando OS'],
+      ['report-4', 'Rentabilidade por OS'],
+      ['report-5', 'Base detalhada']
+    ];
+    set(`${hero('Relatórios', 'Central gerencial para validar prioridades de prazo, margem, compras e resultado financeiro do protótipo.', 'Relatórios')}
       <section class="section report-shell" data-report-root>
         <div class="report-toolbar no-print"><div class="period-grid">
           ${formField('Período', `<select class="select" data-period-select><option value="hoje">Hoje</option><option value="semana">Esta semana</option><option value="mes" selected>Este mês</option><option value="mes-anterior">Mês anterior</option><option value="30">Últimos 30 dias</option><option value="90">Últimos 90 dias</option><option value="ano">Ano atual</option><option value="personalizado">Período personalizado</option></select>`)}
-          ${formField('Data inicial', '<input class="input" type="date" value="2026-06-01">')}${formField('Data final', '<input class="input" type="date" value="2026-06-30">')}
-          <button class="btn btn-primary" type="button" data-report-apply>Aplicar</button><button class="btn btn-secondary" type="button" data-report-clear>Limpar</button>
-        </div><div class="action-row"><button class="btn btn-primary" data-export="PDF">Exportar PDF</button><button class="btn btn-secondary" data-export="Excel">Exportar Excel</button><button class="btn btn-secondary" data-print>Imprimir</button></div></div>
-        <p class="muted">Período selecionado: <strong data-period-label>Este mês</strong> · Última atualização fictícia: 11/06/2026 17:40.</p>
-        <div class="tabs report-tabs no-print" data-report-tabs>${['Visão geral','Produção','Prazo e eficiência','Compras','Financeiro','Rentabilidade','Orçamentos e aprovações','Veículos e clientes'].map((t,i)=>`<button class="tab ${i===0?'active':''}" data-tab-target="report-${i}">${t}</button>`).join('')}</div>
+          <label class="form-field report-custom-range" data-custom-range><span>Data inicial</span><input class="input" type="date" value="2026-06-01"></label>
+          <label class="form-field report-custom-range" data-custom-range><span>Data final</span><input class="input" type="date" value="2026-06-30"></label>
+          <button class="btn btn-primary" type="button" data-report-apply>Atualizar recorte</button><button class="btn btn-secondary" type="button" data-report-clear>Limpar</button>
+        </div><div class="action-row"><button class="btn btn-secondary" data-export="PDF">Exportar PDF</button><button class="btn btn-secondary" data-export="Excel">Exportar Excel</button><button class="btn btn-secondary" data-print>Imprimir</button></div></div>
+        <p class="muted report-state" data-report-state>Recorte atual: <strong data-period-label>Este mês</strong> · dados simulados atualizados em 11/06/2026 17:40.</p>
+        <div class="tabs report-tabs no-print" role="tablist" aria-label="Relatórios por decisão" data-report-tabs>${tabs.map(([id,t],i)=>`<button class="tab ${i===0?'active':''}" type="button" role="tab" aria-selected="${i===0?'true':'false'}" aria-controls="${id}" data-tab-target="${id}">${t}</button>`).join('')}</div>
         <div class="report-panels">
-          <div class="report-panel active" id="report-0"><div class="grid grid-4">${cards.map(([l,v,n])=>c().kpiCard({label:l,value:v,note:n})).join('')}</div>${section('Gráficos executivos', `<div class="grid grid-2"><article class="card"><h4>Veículos por etapa</h4>${barChart(etapaItems, 'volume por etapa')}</article><article class="card"><h4>Receitas versus despesas</h4>${barChart(receitaDespesa, 'valor financeiro')}</article></div>`)}</div>
-          <div class="report-panel" id="report-1">${productionReport(rows)}</div>
-          <div class="report-panel" id="report-2">${efficiencyReport(rows)}</div>
-          <div class="report-panel" id="report-3">${purchasesReport()}</div>
-          <div class="report-panel" id="report-4">${financialReport()}</div>
-          <div class="report-panel" id="report-5">${profitabilityBlock(rows)}</div>
-          <div class="report-panel" id="report-6">${budgetsReport()}</div>
-          <div class="report-panel" id="report-7">${customersVehiclesReport()}</div>
+          <div class="report-panel active" id="report-0" role="tabpanel">${reportExecutiveSummary(rows)}${section('Distribuição operacional', `<div class="grid grid-2"><article class="card report-chart-card"><h4>Veículos por etapa</h4>${barChart(etapaItems, 'volume por etapa')}</article><article class="card report-note-card"><h4>Leitura do resumo</h4><p>Os cards principais priorizam exceções: atraso, bloqueio, margem e resultado. Os indicadores de apoio ficam abaixo para consulta, sem competir com a decisão do dia.</p></article></div>`)}</div>
+          <div class="report-panel" id="report-1" role="tabpanel">${efficiencyReport(rows)}${productionReport(rows)}</div>
+          <div class="report-panel" id="report-2" role="tabpanel">${financialReport()}</div>
+          <div class="report-panel" id="report-3" role="tabpanel">${purchasesReport()}</div>
+          <div class="report-panel" id="report-4" role="tabpanel">${profitabilityBlock(rows)}</div>
+          <div class="report-panel" id="report-5" role="tabpanel">${detailedBaseReport(rows)}</div>
         </div>
       </section>`);
     bindReports();
@@ -106,8 +148,21 @@ window.MeloStage7Module = (() => {
 
   function productionReport(rows) {
     const active = rows.filter((r) => activeStatuses.includes(r.os.status));
-    const kpis = [['Por etapa', d().etapasProducao.length], ['Entregues', rows.filter(r=>r.os.entregaReal).length], ['Recebidos', rows.length], ['Ativos', active.length], ['Finalizados', rows.filter(r=>String(r.os.status).includes('Final')).length], ['Atrasados', active.filter(r=>r.os.previsao < today).length], ['Retrabalho', 3], ['Retorno de etapa', 2], ['Bloqueios paralelos', rows.filter(r=>r.os.condicoes?.length).length]];
-    return `<div class="grid grid-4">${kpis.map(([l,v])=>c().kpiCard({label:l,value:v,note:'Base fictícia coerente'})).join('')}</div><div class="filters-card no-print">${['Etapa','Período','Tipo de atendimento','Seguradora','Status','Prazo'].map(x=>formField(`Agrupar por ${x}`, select(['Todos', x, 'Dentro do prazo', 'Fora do prazo']))).join('')}</div>${table(['OS','Placa','Veículo','Cliente','Entrada','Entrega prevista','Entrega real','Dias','Etapa','Condições','Status','Atraso','Retrabalho'], rows.map(r=>[r.os.numero, r.veiculo.placa, `${r.veiculo.marca} ${r.veiculo.modelo}`, r.cliente.nome, fmt(r.os.entrada), fmt(r.os.previsao), fmt(r.os.entregaReal), days(r.os.entrada), r.etapa.nome, (r.os.condicoes||[]).map(id=>byId(d().condicoesParalelas,id).nome).join(', ') || 'Sem bloqueio', c().statusBadge(r.os.status), r.os.previsao < today && !r.os.entregaReal ? chip('Sim','danger') : chip('Não','success'), Number(r.os.numero.replace(/\D/g,'')) % 4 === 0 ? 'Sim' : 'Não']))}`;
+    const kpis = [
+      ['Ativos', active.length, 'fila atual'],
+      ['Atrasados', active.filter(r=>r.os.previsao < today).length, 'prioridade alta'],
+      ['Bloqueios', rows.filter(r=>r.os.condicoes?.length).length, 'condições paralelas'],
+      ['Retrabalho', 3, 'simulado']
+    ];
+    const decisionRows = rows.map((r) => {
+      const delayed = r.os.previsao < today && !r.os.entregaReal;
+      const conditions = (r.os.condicoes || []).map(id=>byId(d().condicoesParalelas,id).nome).join(', ');
+      const rework = Number(r.os.numero.replace(/\D/g,'')) % 4 === 0;
+      const priority = delayed ? chip('Atraso', 'danger') : conditions ? chip('Bloqueio', 'warning') : rework ? chip('Retrabalho', 'purple') : chip('Normal', 'success');
+      const nextAction = delayed ? 'Replanejar entrega e avisar cliente' : conditions ? 'Resolver condição paralela' : rework ? 'Conferir retorno de etapa' : 'Acompanhar etapa';
+      return [priority, r.os.numero, r.veiculo.placa, `${r.veiculo.marca} ${r.veiculo.modelo}`, r.cliente.nome, r.etapa.nome, fmt(r.os.previsao), conditions || 'Sem bloqueio', c().statusBadge(r.os.status), nextAction];
+    });
+    return `<div class="report-support-grid">${kpis.map(([l,v,n],i)=>reportCompactMetric(l,v,n,i===1?'warning':'' )).join('')}</div><div class="filters-card report-analysis-controls no-print">${['Etapa','Prazo','Seguradora'].map(x=>formField(`Agrupar por ${x}`, select(['Todos', x, 'Dentro do prazo', 'Fora do prazo']))).join('')}<p class="form-hint">Agrupamentos simulados para validar o fluxo visual; a priorização da tabela já destaca atraso, bloqueio e retrabalho.</p></div>${section('Fila operacional priorizada', table(['Prioridade','OS','Placa','Veículo','Cliente','Etapa','Previsão','Condição','Status','Próxima ação'], decisionRows), 'report-risk-table')}`;
   }
   function efficiencyReport(rows) {
     const stages = d().etapasProducao.filter(e=>e.nome!=='Finalizado').map((e, i) => ({ label:e.nome, value:(e.prazo||2)+i%3, prazo:e.prazo||2, qtd:rows.filter(r=>r.os.etapaId===e.id).length }));
@@ -174,7 +229,34 @@ window.MeloStage7Module = (() => {
   function renderDeliveries(){const orders=osRows(); const due=orders.filter(r=>r.os.previsao<=today || r.os.entregaReal || r.os.status==='Finalizado'); const checks=['produção finalizada','peças conferidas','fotos finais','documentos anexados','financeiro conferido','cliente avisado','veículo liberado']; set(`${hero('Entregas','Controle simulado de entregas, pendências, financeiro, documentos e checklist final.','Operação')}<div class="grid grid-4">${[['Entregas hoje',d().agendaEventos.filter(e=>e.tipo==='entrega'&&e.data===today).length],['Atrasadas',orders.filter(r=>r.os.previsao<today&&!r.os.entregaReal).length],['Futuras',orders.filter(r=>r.os.previsao>today).length],['Finalizados',orders.filter(r=>String(r.os.status).includes('Final')).length]].map(([l,v])=>c().kpiCard({label:l,value:v,note:'Agenda e OS'})).join('')}</div>${section('Fila de entrega',table(['OS','Placa','Cliente','Previsão','Pendências','Financeiro','Documentos','Checklist','Ações'],due.map(r=>[r.os.numero,r.veiculo.placa,r.cliente.nome,fmt(r.os.previsao),r.os.condicoes?.length?r.os.condicoes.map(id=>byId(d().condicoesParalelas,id).nome).join(', '):'Sem pendências',r.os.entregaReal?'Conferido':'A conferir',r.os.entregaReal?'Anexados':'Pendentes',checks.map((x,i)=>`<label class="check-cell"><input type="checkbox" ${i<4?'checked':''}>${x}</label>`).join(''),`<button class="btn btn-primary btn-sm" data-critical-action>Liberar entrega</button>`])))}`);}
 
   function simpleModal(id,title,text){return `<div class="modal-backdrop" id="${id}"><div class="modal"><div class="modal-header"><h3 class="modal-title">${title}</h3><button class="icon-button" data-modal-close>×</button></div><div class="modal-body">${text}</div><div class="modal-footer"><button class="btn btn-secondary" data-modal-close>Cancelar</button><button class="btn btn-primary" data-modal-close data-sim-action>Confirmar</button></div></div></div>`;}
-  function bindReports(){document.querySelectorAll('[data-tab-target]').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('.report-tabs .tab').forEach(x=>x.classList.remove('active')); btn.classList.add('active'); document.querySelectorAll('.report-panel').forEach(p=>p.classList.toggle('active',p.id===btn.dataset.tabTarget));})); document.querySelector('[data-report-apply]')?.addEventListener('click',()=>{const sel=document.querySelector('[data-period-select]'); document.querySelector('[data-period-label]').textContent=sel.options[sel.selectedIndex].text; c().toast('Período aplicado aos indicadores do relatório.');}); document.querySelector('[data-report-clear]')?.addEventListener('click',()=>{document.querySelector('[data-period-select]').value='mes'; document.querySelector('[data-period-label]').textContent='Este mês'; c().toast('Filtros limpos.');}); document.querySelectorAll('[data-export]').forEach(b=>b.addEventListener('click',()=>c().toast(`Exportação ${b.dataset.export} simulada no protótipo.`))); document.querySelector('[data-print]')?.addEventListener('click',()=>{c().toast('Impressão simulada; abrindo diálogo do navegador.'); setTimeout(()=>window.print(),300);});}
+  function bindReports(){
+    const period = document.querySelector('[data-period-select]');
+    const customRanges = document.querySelectorAll('[data-custom-range]');
+    const syncCustomRange = () => customRanges.forEach((field) => { field.hidden = period?.value !== 'personalizado'; });
+    syncCustomRange();
+    period?.addEventListener('change', syncCustomRange);
+    document.querySelectorAll('[data-tab-target]').forEach(btn=>btn.addEventListener('click',()=>{
+      document.querySelectorAll('.report-tabs .tab').forEach(x=>{x.classList.remove('active'); x.setAttribute('aria-selected','false');});
+      btn.classList.add('active');
+      btn.setAttribute('aria-selected','true');
+      document.querySelectorAll('.report-panel').forEach(p=>p.classList.toggle('active',p.id===btn.dataset.tabTarget));
+    }));
+    document.querySelector('[data-report-apply]')?.addEventListener('click',()=>{
+      const sel=document.querySelector('[data-period-select]');
+      const label = sel.options[sel.selectedIndex].text;
+      document.querySelector('[data-period-label]').textContent=label;
+      document.querySelector('[data-report-state]').innerHTML=`Recorte atual: <strong data-period-label>${label}</strong> · indicadores simulados revisados para este filtro visual.`;
+      c().toast('Recorte visual atualizado no protótipo.');
+    });
+    document.querySelector('[data-report-clear]')?.addEventListener('click',()=>{
+      document.querySelector('[data-period-select]').value='mes';
+      syncCustomRange();
+      document.querySelector('[data-report-state]').innerHTML='Recorte atual: <strong data-period-label>Este mês</strong> · dados simulados atualizados em 11/06/2026 17:40.';
+      c().toast('Filtros limpos.');
+    });
+    document.querySelectorAll('[data-export]').forEach(b=>b.addEventListener('click',()=>c().toast(`Exportação ${b.dataset.export} simulada no protótipo após conferência do recorte.`)));
+    document.querySelector('[data-print]')?.addEventListener('click',()=>{c().toast('Impressão simulada; abrindo diálogo do navegador.'); setTimeout(()=>window.print(),300);});
+  }
   function bindPermissions(){const selectEl=document.querySelector('[data-permission-user]'); if(!selectEl)return; const apply=()=>{const profile=selectEl.value; const restricted=profile==='Operacional'; document.querySelector('[data-permission-note]').textContent=profile==='Administrador'?'Administrador: todas as ações habilitadas.':profile==='Operacional'?'Operacional: lucro, custos, baixas e configurações ficam desabilitados visualmente.':'Administrativo: operação e financeiro permitidos, configurações críticas restritas.'; document.querySelectorAll('[data-permission-box]').forEach(box=>{const a=box.dataset.action; box.disabled=restricted && ['visualizar lucro','visualizar custos','registrar baixa','configurar sistema','excluir'].includes(a); box.checked=!box.disabled;}); document.querySelectorAll('[data-permission-action]').forEach(b=>{b.disabled=profile!=='Administrador' && b.dataset.permissionAction==='configurar sistema';}); c().toast(`Permissões simuladas para ${profile}.`);}; selectEl.addEventListener('change',apply); apply();}
   function bindCommon(){document.querySelectorAll('[data-sim-action]').forEach(b=>b.addEventListener('click',()=>c().toast('Ação simulada registrada no protótipo.'))); document.querySelectorAll('[data-critical-action]').forEach(b=>b.addEventListener('click',()=>{ if(confirm('Confirma esta ação crítica simulada?')) c().toast('Confirmação simulada concluída.'); })); window.MeloComponents.bindComponents();}
   return { handles, render };

@@ -13,10 +13,11 @@ window.MeloOSModule = (() => {
   const money = (value) => c().money(value || 0);
   const slug = (text) => String(text || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   const escapeHTML = (text) => String(text || '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
-  const activeStatuses = ['Sem orçamento', 'Orçamento importado', 'Aguardando aprovação', 'Aprovado', 'Aguardando agendamento', 'Agendado', 'Na oficina', 'Em produção', 'Finalizado'];
+  const activeStatuses = ['Vistoria agendada', 'Em análise seguradora', 'Sem orçamento', 'Orçamento importado', 'Aguardando aprovação', 'Aprovado', 'Aguardando agendamento', 'Agendado', 'Na oficina', 'Em produção', 'Finalizado'];
   const closedStatuses = ['Entregue', 'Fechado', 'Cancelado'];
 
   const state = loadState();
+  let modalKeyboardBound = false;
 
   function loadState() {
     try {
@@ -37,7 +38,7 @@ window.MeloOSModule = (() => {
   const stage = (os) => byId(d().etapasProducao, os.etapaId);
   const conditionName = (id) => byId(d().condicoesParalelas, id).nome || id;
   const isOverdue = (os) => os.previsao && os.previsao < today && !['Entregue', 'Fechado', 'Cancelado'].includes(os.status);
-  const isUnderAnalysis = (os) => ['Sem orçamento','Orçamento importado','Aguardando aprovação','Aprovado'].includes(os.status);
+  const isUnderAnalysis = (os) => ['Em análise seguradora','Sem orçamento','Orçamento importado','Aguardando aprovação','Aprovado'].includes(os.status);
   const inShop = (os) => Boolean(os.entrada) && !closedStatuses.includes(os.status);
   const badge = (text) => c().statusBadge(text || '—');
   const condBadges = (os) => (os.condicoes || []).length ? os.condicoes.map((id) => `<span class="badge warning">${conditionName(id)}</span>`).join(' ') : '<span class="badge success">Sem condição ativa</span>';
@@ -97,13 +98,13 @@ window.MeloOSModule = (() => {
       <div class="filter-actions"><button class="btn btn-primary" type="submit">Aplicar filtros</button><button class="btn btn-secondary" type="button" data-clear-filters>Limpar filtros</button></div>
     </form></section>`;
   }
-  const field = (label, name, type = 'text', placeholder = '') => `<label class="form-field"><span>${label}</span><input type="${type}" name="${name}" placeholder="${placeholder}"></label>`;
-  const selectField = (label, name) => `<label class="form-field"><span>${label}</span><select name="${name}"><option value="">Todos</option></select></label>`;
+  const field = (label, name, type = 'text', placeholder = '', attrs = '') => `<label class="form-field"><span>${label}</span><input class="input" type="${type}" name="${name}" placeholder="${placeholder}" ${attrs}></label>`;
+  const selectField = (label, name) => `<label class="form-field"><span>${label}</span><select class="select" name="${name}"><option value="">Todos</option></select></label>`;
 
   function populateFilterOptions(root) {
     fillSelect(root, 'seguradora', uniq(d().ordensServico.map((os) => os.seguradora)));
     fillSelect(root, 'origem', ['Cilia','Soma','Manual']);
-    fillSelect(root, 'status', ['Sem orçamento','Orçamento importado','Aguardando aprovação','Aprovado','Aguardando agendamento','Agendado','Na oficina','Em produção','Finalizado','Entregue','Fechado','Cancelado']);
+    fillSelect(root, 'status', ['Vistoria agendada','Em análise seguradora','Sem orçamento','Orçamento importado','Aguardando aprovação','Aprovado','Aguardando agendamento','Agendado','Na oficina','Em produção','Finalizado','Entregue','Fechado','Cancelado']);
     fillSelect(root, 'etapa', d().etapasProducao.map((e) => e.nome));
     fillSelect(root, 'condicao', d().condicoesParalelas.map((e) => e.nome));
     fillSelect(root, 'responsavel', uniq(d().ordensServico.map((os) => os.responsavel)));
@@ -135,6 +136,11 @@ window.MeloOSModule = (() => {
     document.querySelectorAll('[data-open-modal]').forEach((btn) => btn.addEventListener('click', () => openGeneralModal(btn.dataset.openModal)));
     document.querySelector('[data-new-os-form]')?.addEventListener('submit', handleNewOS);
     document.querySelectorAll('[data-modal-close-custom]').forEach((btn) => btn.addEventListener('click', closeModals));
+    document.querySelectorAll('.modal-backdrop').forEach((backdrop) => backdrop.addEventListener('click', (event) => { if (event.target === backdrop) closeModals(); }));
+    if (!modalKeyboardBound) {
+      document.addEventListener('keydown', (event) => { if (event.key === 'Escape') closeModals(); });
+      modalKeyboardBound = true;
+    }
   }
 
   function filters(root) {
@@ -271,52 +277,147 @@ window.MeloOSModule = (() => {
 
   function openGeneralModal(type) {
     const modal = document.querySelector('[data-general-modal]');
+    const active = document.activeElement;
+    if (active?.id) modal.dataset.lastFocus = `#${active.id}`;
     if (type === 'new-os') modal.querySelector('[data-general-body]').innerHTML = newOSForm();
-    if (type === 'import-os') modal.querySelector('[data-general-body]').innerHTML = `<h3>Importar orçamento</h3><p>Simulação de importação do Cilia ou Soma. No sistema real, esta ação buscará orçamentos aprovados, validará itens e criará a OS vinculada a um único veículo.</p><div class="grid grid-2"><button class="btn btn-primary" data-toast-import>Cilia</button><button class="btn btn-secondary" data-toast-import>Soma</button></div>`;
+    if (type === 'import-os') modal.querySelector('[data-general-body]').innerHTML = `<h3 id="generalModalTitle">Importar orçamento</h3><p>Simulação de importação do Cilia ou Soma. No sistema real, esta ação buscará orçamentos aprovados, validará itens e criará a OS vinculada a um único veículo.</p><div class="grid grid-2"><button class="btn btn-primary" data-toast-import>Cilia</button><button class="btn btn-secondary" data-toast-import>Soma</button></div>`;
     modal.classList.add('is-open');
-    modal.querySelector('[data-new-os-form]')?.addEventListener('submit', handleNewOS);
+    const form = modal.querySelector('[data-new-os-form]');
+    if (form) bindNewOSForm(form);
     modal.querySelectorAll('[data-toast-import]').forEach((b) => b.addEventListener('click', () => c().toast('Importação simulada validada.')));
+    modal.querySelectorAll('[data-modal-close-custom]').forEach((btn) => btn.addEventListener('click', closeModals));
+    (form?.querySelector('[data-client-search]') || modal.querySelector('input, select, textarea, button'))?.focus();
   }
   function closeModals() { document.querySelectorAll('.modal-backdrop').forEach((m) => { m.classList.remove('is-open'); m.dataset.lastFocus?.length && document.querySelector(m.dataset.lastFocus)?.focus?.(); delete m.dataset.lastFocus; }); }
 
   function newOSForm() {
-    const clients = d().clientes.map((cli) => `<option value="${cli.id}">${cli.nome}</option>`).join('');
-    const vehicles = d().veiculos.map((v) => `<option value="${v.id}">${v.placa} · ${v.marca} ${v.modelo}</option>`).join('');
-    return `<h3>Nova OS simulada</h3><p class="muted">Use para abrir a OS antes do orçamento do Cilia/Soma; os IDs externos podem ser preenchidos depois.</p><form data-new-os-form class="os-form-grid">
-      <fieldset><legend>Identificação</legend><label class="form-field"><span>Origem</span><select name="origem"><option>Manual</option><option>Cilia</option><option>Soma</option></select></label>${field('Número do orçamento','numeroOrcamento','text','opcional')}${field('ID externo Cilia/Soma','idExterno','text','opcional')}${field('Data de aprovação','aprovacao','date')}${field('Número do sinistro','sinistro','text','opcional')}</fieldset>
-      <fieldset><legend>Cliente</legend><label class="form-field"><span>Cliente existente</span><select name="clienteId"><option value="__new__">Cadastrar novo cliente</option>${clients}</select></label>${field('Nome do cliente','clienteNome','text','Obrigatório se não houver cadastro')}${field('Telefone','telefone','tel')}${field('E-mail','email','email')}</fieldset>
-      <fieldset><legend>Veículo</legend><label class="form-field"><span>Veículo existente</span><select name="veiculoId"><option value="__new__">Cadastrar novo veículo</option>${vehicles}</select></label>${field('Placa','placa','text')}${field('Marca','marca','text')}${field('Modelo','modelo','text')}${field('Ano','ano','number')}${field('Cor','cor','text')}${field('Chassi opcional','chassi','text')}</fieldset>
-      <fieldset><legend>Atendimento</legend>${field('Seguradora','seguradora','text')}${field('Tipo de atendimento','tipoAtendimento','text')}${field('Responsável interno','responsavel','text','Marina Lopes')}${field('Data prevista de entrada','entradaPrevista','date')}${field('Previsão inicial de entrega','previsao','date')}<label class="form-field"><span>Observações</span><textarea name="observacoes"></textarea></label></fieldset>
-      <fieldset><legend>Valores</legend>${field('Mão de obra','maoObra','number')}${field('Peças','pecas','number')}${field('Materiais','materiais','number')}${field('Serviços terceirizados','terceiros','number')}${field('Desconto','desconto','number')}${field('Valor aprovado','valor','number')}</fieldset>
-      <div class="modal-actions"><button class="btn btn-secondary" type="button" data-modal-close-custom>Cancelar</button><button class="btn btn-primary" type="submit">Confirmar cadastro</button></div></form>`;
+    const seguros = ['Particular', 'Lojista', ...uniq(d().ordensServico.map((os) => os.seguradora).filter((item) => item && !['Cliente particular','Não informada'].includes(item)))];
+    return `<h3 id="generalModalTitle">Nova OS manual</h3><p class="muted">Abra uma OS rápida sem importação. Cadastros, orçamento e valores podem ser completados depois.</p><form data-new-os-form class="os-form-grid quick-os-form" aria-labelledby="generalModalTitle" novalidate>
+      <fieldset class="quick-os-primary"><legend>1. Cliente</legend>
+        <input type="hidden" name="clienteId">
+        <label class="form-field wide"><span>Buscar cliente por nome, celular ou CPF</span><input class="input" type="search" name="clienteBusca" data-client-search placeholder="Ex.: Roberto, (11) 99999-9999 ou 123.456.789-00" autocomplete="off" required></label>
+        <div class="client-match-list" data-client-results aria-live="polite"><span>Digite para buscar. Se não encontrar, preencha o cadastro rápido abaixo.</span></div>
+        ${field('Nome para cadastro rápido','clienteNome','text','Obrigatório se for novo cliente')}
+        ${field('Celular','telefone','tel','(11) 99999-9999')}
+        ${field('CPF ou documento','documento','text','Opcional')}
+      </fieldset>
+      <fieldset class="quick-os-primary"><legend>2. Veículo nesta OS</legend>
+        ${field('Placa','placa','text','ABC1D23')}
+        ${field('Marca','marca','text','Chevrolet')}
+        ${field('Modelo','modelo','text','Onix', 'required')}
+        ${field('Ano','ano','number','2021')}
+        ${field('Cor','cor','text','Prata')}
+        <p class="form-hint wide">Estes dados identificam o veículo nesta OS. Não é necessário abrir um cadastro de veículo agora.</p>
+      </fieldset>
+      <fieldset><legend>3. Status e atendimento</legend>
+        <label class="form-field"><span>Status inicial</span><select class="select" name="statusInicial"><option>Vistoria agendada</option><option>Em análise seguradora</option></select></label>
+        <label class="form-field"><span>Seguro / particular / lojista</span><select class="select" name="atendimentoOrigem">${seguros.map((item) => `<option>${item}</option>`).join('')}</select></label>
+      </fieldset>
+      <details class="quick-os-optional">
+        <summary>Dados opcionais de orçamento e valores</summary>
+        <fieldset><legend>Orçamento</legend>
+          ${field('Número do orçamento','numeroOrcamento','text','Opcional')}
+          ${field('ID externo Cilia/Soma','idExterno','text','Opcional')}
+          ${field('Número do sinistro','sinistro','text','Opcional')}
+          ${field('Data de aprovação','aprovacao','date')}
+        </fieldset>
+        <fieldset><legend>Valores</legend>
+          ${field('Mão de obra','maoObra','number')}
+          ${field('Peças','pecas','number')}
+          ${field('Materiais','materiais','number')}
+          ${field('Serviços terceirizados','terceiros','number')}
+          ${field('Desconto','desconto','number')}
+          ${field('Valor aprovado','valor','number')}
+        </fieldset>
+      </details>
+      <div class="modal-actions"><button class="btn btn-secondary" type="button" data-modal-close-custom>Cancelar</button><button class="btn btn-primary" type="submit">Criar OS</button></div></form>`;
+  }
+
+  function bindNewOSForm(form) {
+    form.addEventListener('submit', handleNewOS);
+    form.querySelector('[data-client-search]')?.addEventListener('input', () => updateClientMatches(form));
+    form.addEventListener('click', (event) => {
+      const pick = event.target.closest('[data-client-pick]');
+      if (!pick) return;
+      const cli = byId(d().clientes, pick.dataset.clientPick);
+      form.querySelector('[name="clienteId"]').value = cli.id;
+      form.querySelector('[name="clienteBusca"]').value = clientSearchLabel(cli);
+      form.querySelector('[name="clienteNome"]').value = cli.nome || '';
+      form.querySelector('[name="telefone"]').value = cli.telefone || '';
+      form.querySelector('[name="documento"]').value = cli.documento || '';
+      updateClientMatches(form);
+    });
+    updateClientMatches(form);
+  }
+
+  function clientSearchLabel(cli) {
+    return [cli.nome, cli.telefone, cli.documento].filter(Boolean).join(' · ');
+  }
+
+  function clientMatches(query) {
+    const q = slug(query);
+    if (!q) return [];
+    return d().clientes.filter((cli) => slug([cli.nome, cli.telefone, cli.documento, cli.email].join(' ')).includes(q)).slice(0, 5);
+  }
+
+  function updateClientMatches(form) {
+    const box = form.querySelector('[data-client-results]');
+    if (!box) return;
+    const hiddenId = form.querySelector('[name="clienteId"]');
+    const search = form.querySelector('[name="clienteBusca"]');
+    const matches = clientMatches(search.value);
+    const selected = matches.find((cli) => cli.id === hiddenId.value);
+    if (!selected) hiddenId.value = '';
+    if (!search.value.trim()) {
+      box.innerHTML = '<span>Digite para buscar. Se não encontrar, preencha o cadastro rápido abaixo.</span>';
+      return;
+    }
+    box.innerHTML = matches.length
+      ? matches.map((cli) => `<button type="button" class="${cli.id === hiddenId.value ? 'is-selected' : ''}" data-client-pick="${cli.id}"><strong>${cli.nome}</strong><span>${cli.telefone || 'Sem celular'}${cli.documento ? ` · ${cli.documento}` : ''}</span></button>`).join('')
+      : '<span>Nenhum cliente encontrado. Complete nome e celular para criar rápido.</span>';
   }
 
   function handleNewOS(event) {
     event.preventDefault();
     const form = event.currentTarget, values = Object.fromEntries(new FormData(form).entries());
-    const newClient = values.clienteId === '__new__';
-    const newVehicle = values.veiculoId === '__new__';
-    const missing = ['previsao'].filter((k) => !values[k]);
-    if (newClient && !values.clienteNome) missing.push('clienteNome');
-    if (newVehicle && !values.placa) missing.push('placa');
-    if (newVehicle && !values.modelo) missing.push('modelo');
-    if (missing.length) { c().toast('Preencha os campos obrigatórios destacados.'); missing.forEach((k) => form.querySelector(`[name="${k}"]`)?.classList.add('is-invalid')); return; }
+    form.querySelectorAll('.is-invalid').forEach((el) => el.classList.remove('is-invalid'));
+    form.querySelectorAll('[data-field-error]').forEach((el) => el.remove());
+    const existingClient = values.clienteId ? byId(d().clientes, values.clienteId) : null;
+    const newClient = !existingClient?.id;
+    const missing = ['modelo'].filter((k) => !values[k]);
+    if (newClient && !values.clienteNome && !values.clienteBusca) missing.push('clienteBusca');
+    if (newClient && !values.telefone && !values.documento) missing.push('telefone');
+    if (missing.length) {
+      showNewOSErrors(form, missing);
+      c().toast('Revise os campos destacados para criar a OS.');
+      return;
+    }
     let clienteId = values.clienteId;
     if (newClient) {
       clienteId = `CLI-N${Date.now()}`;
-      d().clientes.unshift({ id: clienteId, nome: values.clienteNome, telefone: values.telefone || 'Não informado', email: values.email || '', documento: '', status: 'Ativo' });
+      d().clientes.unshift({ id: clienteId, nome: values.clienteNome || values.clienteBusca, telefone: values.telefone || 'Não informado', email: values.email || '', documento: values.documento || '', status: 'Ativo' });
     }
-    let veiculoId = values.veiculoId;
-    if (newVehicle) {
-      veiculoId = `VEI-N${Date.now()}`;
-      d().veiculos.unshift({ id: veiculoId, clienteId, placa: values.placa, marca: values.marca || '', modelo: values.modelo, ano: values.ano || '', cor: values.cor || '', chassi: values.chassi || '', status: 'Ativo' });
-    }
+    const veiculoId = `VEI-OS-${Date.now()}`;
+    d().veiculos.unshift({ id: veiculoId, clienteId, placa: values.placa || 'Sem placa', marca: values.marca || '', modelo: values.modelo, ano: values.ano || '', cor: values.cor || '', chassi: '', status: 'Digitado na OS' });
     const next = 1100 + d().ordensServico.filter((os) => os.id.startsWith('OS-N')).length;
-    const hasBudget = Boolean(values.numeroOrcamento || values.idExterno);
-    const os = { id: `OS-N${next}`, numero: `OS ${next}`, clienteId, veiculoId, origem: values.origem, numeroOrcamento: values.numeroOrcamento, idExterno: values.idExterno, sinistro: values.sinistro || 'Sem sinistro', seguradora: values.seguradora || 'Não informada', tipoAtendimento: values.tipoAtendimento || 'Manual', responsavel: values.responsavel || 'Marina Lopes', etapaId: 'ETP-01', etapaEntrada: '', condicoes: [], condicoesDetalhes: [], status: hasBudget ? 'Aguardando agendamento' : 'Sem orçamento', entradaPrevista: values.entradaPrevista, entrada: '', aprovacao: values.aprovacao, previsaoInicial: values.previsao, previsao: values.previsao, entregaReal: '', valor: Number(values.valor || 0), valores: { maoObra: Number(values.maoObra || 0), pecas: Number(values.pecas || 0), materiais: Number(values.materiais || 0), terceiros: Number(values.terceiros || 0), desconto: Number(values.desconto || 0), aprovado: Number(values.valor || 0) }, conclusao: 0 };
+    const atendimento = values.atendimentoOrigem || 'Particular';
+    const tipoAtendimento = atendimento === 'Particular' ? 'Particular' : atendimento === 'Lojista' ? 'Lojista' : 'Seguro';
+    const seguradora = tipoAtendimento === 'Seguro' ? atendimento : atendimento === 'Lojista' ? 'Lojista' : 'Cliente particular';
+    const os = { id: `OS-N${next}`, numero: `OS ${next}`, clienteId, veiculoId, origem: 'Manual', numeroOrcamento: values.numeroOrcamento, idExterno: values.idExterno, sinistro: values.sinistro || 'Sem sinistro', seguradora, tipoAtendimento, responsavel: 'Marina Lopes', etapaId: 'ETP-01', etapaEntrada: '', condicoes: [], condicoesDetalhes: [], status: values.statusInicial || 'Vistoria agendada', entradaPrevista: '', entrada: '', aprovacao: values.aprovacao, previsaoInicial: '', previsao: '', entregaReal: '', valor: Number(values.valor || 0), valores: { maoObra: Number(values.maoObra || 0), pecas: Number(values.pecas || 0), materiais: Number(values.materiais || 0), terceiros: Number(values.terceiros || 0), desconto: Number(values.desconto || 0), aprovado: Number(values.valor || 0) }, observacoesAbertura: '', conclusao: 0 };
     d().ordensServico.unshift(os);
-    addHistory(os.id, 'criação', 'OS cadastrada manualmente no protótipo.', '', os.status);
-    saveState(); closeModals(); c().toast('OS criada na sessão.'); initList();
+    addHistory(os.id, 'criação', `${os.numero} aberta manualmente${newClient ? ' com cliente criado rapidamente' : ' para cliente existente'}.`, '', os.status);
+    saveState(); closeModals(); c().toast(`${os.numero} criada. Complete orçamento e valores depois, se necessário.`); initList();
+  }
+
+  function showNewOSErrors(form, fields) {
+    const labels = { clienteBusca: 'Informe ou selecione um cliente.', telefone: 'Para cliente novo, informe celular ou CPF/documento.', modelo: 'Informe ao menos o modelo do veículo.' };
+    fields.forEach((name) => {
+      const input = form.querySelector(`[name="${name}"]`);
+      if (!input) return;
+      input.classList.add('is-invalid');
+      input.insertAdjacentHTML('afterend', `<small class="field-error" data-field-error>${labels[name] || 'Campo obrigatório.'}</small>`);
+    });
+    form.querySelector('.is-invalid')?.focus();
   }
 
   function openActionModal(action, id) {
@@ -552,7 +653,7 @@ window.MeloOSModule = (() => {
   function timeline(items, compact=false) { return `<div class="timeline-list">${items.map((h)=>`<article class="timeline-item"><div><strong>${h.tipo}</strong><span>${fmtDateTime(h.dataHora)} · ${h.usuario}</span></div><p>${h.descricao}</p>${compact?'':`<small>Antes: ${h.antes || '—'} · Depois: ${h.depois || '—'}</small>`}</article>`).join('')}</div>`; }
   function obsCard(o) { return `<div class="obs-card ${o.fixada?'pinned':''}"><span>${o.categoria} · ${fmtDateTime(o.dataHora)} · ${o.autor}</span><p>${o.texto}</p><button class="btn btn-secondary" data-pin-obs="${o.id}">${o.fixada?'Desafixar':'Fixar'}</button></div>`; }
   function togglePin(id, os) { const obs=d().observacoesOS.find((o)=>o.id===id); if(obs){obs.fixada=!obs.fixada; addHistory(os.id,'observações',`Observação ${obs.fixada?'fixada':'desafixada'}.`,'',obs.categoria); saveState(); c().toast('Observação atualizada.'); renderDetail();} }
-  function modalsMarkup() { return `<div class="modal-backdrop" data-general-modal><div class="modal large"><button class="modal-close" data-modal-close-custom>×</button><div data-general-body></div></div></div><div class="modal-backdrop" data-action-modal><div class="modal large"><button class="modal-close" data-modal-close-custom>×</button><h3 data-action-title></h3><div data-action-body></div></div></div>`; }
+  function modalsMarkup() { return `<div class="modal-backdrop" data-general-modal><div class="modal large" role="dialog" aria-modal="true" aria-labelledby="generalModalTitle"><button class="modal-close" type="button" data-modal-close-custom aria-label="Fechar modal">×</button><div data-general-body></div></div></div><div class="modal-backdrop" data-action-modal><div class="modal large" role="dialog" aria-modal="true" aria-labelledby="actionModalTitle"><button class="modal-close" type="button" data-modal-close-custom aria-label="Fechar modal">×</button><h3 id="actionModalTitle" data-action-title></h3><div data-action-body></div></div></div>`; }
 
   function summaryV2(os) {
     const v = vehicle(os), cl = client(os), tags = os.etiquetasProducao || [];
